@@ -1590,13 +1590,10 @@ const BookListGrid = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredBooks.map((book) => {
-                const completedModules = book.modules.filter((m) => m.status === 'completed').length;
-                const totalModules = book.modules.length;
                 const wordCount = book.modules.reduce((acc, m) => acc + (m.wordCount || 0), 0) || book.totalWords || 0;
                 const Icon = getBookIcon(book.title);
-                const completionRatio = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
                 return (
                   <div
@@ -1604,10 +1601,10 @@ const BookListGrid = ({
                     onMouseEnter={() => setHoveredBookId(book.id)}
                     onMouseLeave={() => setHoveredBookId(null)}
                     onClick={() => onSelectBook(book.id)}
-                    className="group relative cursor-pointer overflow-hidden rounded-[20px] border border-gray-200/80 bg-white/96 p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500/20 dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.04]"
+                    className="group relative cursor-pointer overflow-hidden rounded-[20px] border border-gray-200/80 bg-white/96 p-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500/20 dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.04]"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className={`relative h-20 w-[60px] shrink-0 overflow-hidden rounded-[16px] border border-white/10 bg-gradient-to-br ${getBookCoverTone(book.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`relative h-20 w-[58px] shrink-0 overflow-hidden rounded-[16px] border border-white/10 bg-gradient-to-br ${getBookCoverTone(book.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]`}>
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_38%),linear-gradient(180deg,rgba(8,8,8,0.02),rgba(8,8,8,0.44))]" />
                         <div className="absolute inset-x-0 bottom-0 p-2">
                           <div className="mb-1 inline-flex rounded-full border border-white/15 bg-black/20 p-1 text-white/90 backdrop-blur-md">
@@ -1620,10 +1617,24 @@ const BookListGrid = ({
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center rounded-full border border-orange-500/15 bg-orange-500/[0.07] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-orange-300">
-                            {getStatusBadge(book.status)}
-                          </span>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="break-words text-[15px] font-semibold leading-5 text-[var(--color-text-primary)]" style={{ fontFamily: 'Rubik, sans-serif' }}>
+                              {book.title}
+                            </h3>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--color-text-secondary)]">
+                              <span className="inline-flex items-center gap-1.5">
+                                <Clock size={11} />
+                                {new Date(book.createdAt).toLocaleDateString()}
+                              </span>
+                              {wordCount > 0 && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Sparkles size={11} />
+                                  {wordCount.toLocaleString()} words
+                                </span>
+                              )}
+                            </div>
+                          </div>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1634,44 +1645,6 @@ const BookListGrid = ({
                             <Trash2 size={14} />
                           </button>
                         </div>
-
-                        <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'Rubik, sans-serif' }}>
-                          {book.title}
-                        </h3>
-                        <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
-                            <FileText size={10} />
-                            {totalModules} modules
-                          </span>
-                          {wordCount > 0 && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
-                              <Sparkles size={10} />
-                              {wordCount.toLocaleString()}
-                            </span>
-                          )}
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
-                            <Clock size={10} />
-                            {new Date(book.updatedAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 border-t border-white/[0.08] pt-3">
-                      <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
-                        <span>{completedModules}/{Math.max(totalModules, 1)} done</span>
-                        <span>{completionRatio}%</span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300 transition-all"
-                          style={{ width: `${completionRatio}%` }}
-                        />
-                      </div>
-                      <div className="mt-3 flex items-center justify-end text-[11px] font-medium text-[var(--color-text-secondary)]">
-                        <span className="text-orange-400 transition-colors group-hover:text-orange-300">
-                          Open {'->'}
-                        </span>
                       </div>
                     </div>
                   </div>

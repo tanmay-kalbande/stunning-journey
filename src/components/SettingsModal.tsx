@@ -50,6 +50,11 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => setLocalSettings(settings), [settings, isOpen]);
+  React.useEffect(() => {
+    if (activeTab === 'keys') {
+      setActiveTab('personality');
+    }
+  }, [activeTab]);
 
   const handleSave = () => {
     setIsSaving(true);
@@ -241,7 +246,6 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                 <nav className="flex md:flex-col space-x-1 md:space-x-0 md:space-y-1 shrink-0">
                   {[
                     { id: 'personality', label: 'Persona & Identity', icon: Sparkles },
-                    { id: 'keys', label: 'AI Setup', icon: Key },
                     { id: 'data', label: 'Data & Backup', icon: Database },
                     { id: 'about', label: 'About', icon: Cpu },
                   ].map((tab) => (
@@ -262,13 +266,6 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                 <div className="hidden md:block mt-8 pt-6 border-t border-white/[0.06] w-full">
                   <p className="mb-4 px-4 text-[10px] font-black uppercase tracking-widest text-white/35">Resource Center</p>
                   <div className="space-y-1">
-                    <button
-                      onClick={onOpenAPIDocs}
-                      className="flex w-full items-center gap-3 px-4 py-2 text-xs font-bold text-white/50 transition-colors hover:text-orange-300"
-                    >
-                      <BookMarked size={14} />
-                      API Setup
-                    </button>
                     <button
                       onClick={onOpenUsageGuide}
                       className="flex w-full items-center gap-3 px-4 py-2 text-xs font-bold text-white/50 transition-colors hover:text-orange-300"
