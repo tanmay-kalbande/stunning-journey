@@ -1,0 +1,12 @@
+# General Rules
+User-agent: *
+
+# Keep private or system paths out of search results
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /sw.js
+Disallow: /*?* # Optional: Prevent crawling of dynamic query parameters unless needed
+
+Host: https://pustakamai.tanmaysk.in
+Sitemap: https://pustakamai.tanmaysk.in/sitemap.xml
