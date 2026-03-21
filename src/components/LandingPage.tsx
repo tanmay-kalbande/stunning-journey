@@ -89,10 +89,10 @@ const LandingPage = ({
   };
 
   const renderHome = () => (
-    <div className="flex min-h-full w-full max-w-6xl flex-col items-center justify-center px-4 py-6 text-center">
-      <div className="max-w-4xl">
+    <div className="flex min-h-full w-full max-w-[1180px] flex-col items-center justify-center px-6 py-10 text-center md:px-8 md:py-14">
+      <div className="max-w-[980px]">
         <motion.div
-          className="mb-6 hidden items-center justify-center md:flex"
+          className="mb-5 hidden items-center justify-center md:flex"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: 'easeOut' }}
@@ -104,7 +104,7 @@ const LandingPage = ({
         </motion.div>
 
         <motion.h1
-          className="mb-3 text-5xl font-extrabold leading-[0.92] tracking-tight text-white md:text-7xl lg:text-[92px]"
+          className="mx-auto mb-4 max-w-[1020px] text-[54px] font-extrabold leading-[0.94] tracking-[-0.04em] text-white md:text-[76px] lg:text-[108px]"
           style={{ fontFamily: "'Rubik', sans-serif" }}
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -115,7 +115,7 @@ const LandingPage = ({
         </motion.h1>
 
         <motion.p
-          className="mx-auto mb-10 max-w-2xl px-4 text-[15px] leading-relaxed text-white/45 md:text-base"
+          className="mx-auto mb-12 max-w-3xl px-4 text-[15px] leading-[1.75] text-white/52 md:text-lg"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
@@ -124,15 +124,15 @@ const LandingPage = ({
         </motion.p>
       </div>
 
-      <div className="mb-10 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="mb-12 grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
         {[
           { title: 'Focused Model Stack', desc: 'Only four approved GLM models, tuned for clarity and consistency.' },
           { title: 'Structured Outputs', desc: 'Roadmap, chapters, summary, and glossary in one guided pipeline.' },
           { title: 'Secure By Design', desc: 'Zhipu key stays server-side through the edge proxy and Supabase auth.' },
         ].map((item) => (
-          <div key={item.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left backdrop-blur-sm">
+          <div key={item.title} className="rounded-[26px] border border-white/10 bg-white/[0.04] p-6 text-left backdrop-blur-sm">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-200/80">{item.title}</p>
-            <p className="text-sm leading-relaxed text-white/70">{item.desc}</p>
+            <p className="text-[15px] leading-8 text-white/72">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -140,14 +140,14 @@ const LandingPage = ({
       <div className="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
         <button
           onClick={onGetStarted}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white px-8 py-3 text-[13px] font-bold tracking-[0.18em] text-black transition-all hover:bg-white/90 sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white px-10 py-3.5 text-[13px] font-bold tracking-[0.18em] text-black transition-all hover:bg-white/90 sm:w-auto"
         >
           Start Building
           <MoveRight className="h-4 w-4" />
         </button>
         <button
           onClick={() => handleTabChange('demo')}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-8 py-3 text-[13px] font-medium tracking-wide text-white/70 transition-all hover:border-white/20 hover:text-white sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-10 py-3.5 text-[13px] font-medium tracking-wide text-white/70 transition-all hover:border-white/20 hover:text-white sm:w-auto"
         >
           View Sample Book
         </button>
@@ -363,7 +363,7 @@ const LandingPage = ({
           <div className="group flex cursor-pointer items-center gap-2">
             <img src="/white-logo.png" alt="Pustakam AI Logo" className="h-[33px] w-[33px] opacity-90 transition-opacity group-hover:opacity-100 md:h-8 md:w-8" />
             <span className="text-[16px] font-bold tracking-tight text-white/90 transition-colors group-hover:text-white md:text-xl">
-              Pustakam<span className="text-white/40">Agni</span>
+              Pustakam<span className="ml-0.5 text-white/40">Agni</span>
             </span>
           </div>
         </div>
@@ -544,7 +544,7 @@ const LandingPage = ({
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="flex h-full w-full flex-1 flex-col items-center justify-center"
+                className="flex h-full w-full flex-1 flex-col items-center justify-center px-6 pb-28 pt-24"
               >
                 {renderDesktopContent()}
               </motion.div>
@@ -554,8 +554,8 @@ const LandingPage = ({
           <footer className="z-50 w-full border-t border-white/5 bg-black px-6 py-4 md:absolute md:bottom-0 md:left-0 md:right-0 md:bg-black/80 md:py-5 md:backdrop-blur-xl">
             <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row md:gap-3">
               <div className="flex items-center gap-4 text-[9px] font-medium uppercase tracking-wider text-white/30 md:text-[10px]">
-                <span>© {new Date().getFullYear()} Pustakam Agni</span>
-                <span className="hidden md:inline">•</span>
+                <span>&copy; {new Date().getFullYear()} Pustakam Agni</span>
+                <span className="hidden md:inline">&bull;</span>
                 <span>Tanmay Kalbande</span>
               </div>
 
