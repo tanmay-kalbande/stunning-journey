@@ -39,8 +39,8 @@
   :root {
     --color-bg: #050505;
     --color-sidebar: #050505;
-    --color-card: rgba(255, 255, 255, 0.03);
-    --color-border: rgba(255, 255, 255, 0.08);
+    --color-card: rgba(255, 255, 255, 0.04);
+    --color-border: rgba(255, 255, 255, 0.1);
     --color-text-primary: #FFFFFF;
     --color-text-secondary: #9ca3af;
     --color-text-placeholder: #6B7280;
@@ -1160,14 +1160,16 @@
   /* Glass-effect boxy input bar */
   .grok-input-bar {
     @apply flex items-center gap-2 w-full max-w-2xl mx-auto;
-    @apply border rounded-2xl;
+    @apply border rounded-[28px];
     @apply px-5 py-3.5 transition-all duration-300;
-    background: rgba(255, 255, 255, 0.08);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03)),
+      radial-gradient(circle at top, rgba(249, 115, 22, 0.09), transparent 55%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-color: rgba(255, 255, 255, 0.12);
     min-height: 56px;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset, 0 8px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05) inset, 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(249, 115, 22, 0.06);
   }
 
   @media (min-width: 768px) {
@@ -1180,7 +1182,7 @@
 
   .grok-input-bar:focus-within {
     border-color: rgba(249, 115, 22, 0.5);
-    box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.15) inset, 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(249, 115, 22, 0.1);
+    box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.15) inset, 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(249, 115, 22, 0.1);
   }
 
   .light .grok-input-bar {
@@ -1253,9 +1255,11 @@
     @apply border rounded-full cursor-pointer;
     @apply text-sm font-medium;
     @apply transition-all duration-200;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.02);
     border-color: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   .grok-chip:hover {

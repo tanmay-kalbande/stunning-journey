@@ -1215,16 +1215,25 @@ const HomeView = ({
       }}
     />
     <div className="w-full max-w-2xl mx-auto animate-subtle-fade">
-      <div className="text-center mb-10">
+      <div className="text-center mb-8">
+        <div className="mb-5 hidden items-center justify-center md:flex">
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-orange-200/90">
+            <Sparkles className="h-3.5 w-3.5" />
+            Pustakam Injin
+          </span>
+        </div>
         <img
           src={theme === 'dark' ? '/white-logo.png' : '/black-logo.png'}
           alt="Pustakam"
-          className="w-16 h-16 mx-auto mb-6"
+          className="w-14 h-14 mx-auto mb-5"
         />
-        <h1 className="text-4xl md:text-5xl font-bold text-[var(--color-text-primary)] tracking-tight leading-tight">
-          Build Your Private<br />
-          <span className="text-orange-500">Learning Book.</span>
+        <h1 className="text-4xl md:text-[56px] font-bold text-[var(--color-text-primary)] tracking-tight leading-[0.96]">
+          Build Better<br />
+          <span className="text-orange-500">Learning Books.</span>
         </h1>
+        <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)] md:text-base">
+          Start with one idea. Injin turns it into a clean, structured book.
+        </p>
       </div>
 
       {/* Glass-effect boxy Input Bar */}
@@ -1297,7 +1306,7 @@ const HomeView = ({
       {/* Advanced Options Dropdown */}
       {showAdvanced && (
         <div
-          className="mt-6 p-6 bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl shadow-xl"
+          className="mt-6 p-6 bg-[var(--color-card)] border border-[var(--color-border)] rounded-[28px] shadow-xl"
           style={{
             animation: 'dropdownSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             transformOrigin: 'top center'

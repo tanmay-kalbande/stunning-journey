@@ -89,10 +89,10 @@ const LandingPage = ({
   };
 
   const renderHome = () => (
-    <div className="flex min-h-full w-full max-w-[1020px] flex-col items-center justify-center px-6 py-8 text-center md:min-h-0 md:px-8 md:py-6">
-      <div className="max-w-[900px]">
+    <div className="flex min-h-full w-full max-w-[960px] flex-col items-center justify-center px-6 py-8 text-center md:min-h-0 md:px-8 md:py-4">
+      <div className="max-w-[820px]">
         <motion.div
-          className="mb-4 hidden items-center justify-center md:flex"
+          className="mb-3 hidden items-center justify-center md:flex"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: 'easeOut' }}
@@ -104,7 +104,7 @@ const LandingPage = ({
         </motion.div>
 
         <motion.h1
-          className="mx-auto mb-3 max-w-[860px] text-[46px] font-extrabold leading-[0.95] tracking-[-0.035em] text-white md:text-[56px] lg:text-[72px]"
+          className="mx-auto mb-2 max-w-[760px] text-[42px] font-extrabold leading-[0.94] tracking-[-0.035em] text-white md:text-[50px] lg:text-[62px]"
           style={{ fontFamily: "'Rubik', sans-serif" }}
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -115,7 +115,7 @@ const LandingPage = ({
         </motion.h1>
 
         <motion.p
-          className="mx-auto mb-7 max-w-[700px] px-4 text-[15px] leading-[1.6] text-white/52 md:text-base"
+          className="mx-auto mb-5 max-w-[620px] px-4 text-[14px] leading-[1.55] text-white/52 md:text-[15px]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
@@ -124,15 +124,15 @@ const LandingPage = ({
         </motion.p>
       </div>
 
-      <div className="mb-7 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="mb-5 grid w-full max-w-[920px] grid-cols-1 gap-3 md:grid-cols-3">
         {[
           { title: 'Focused Models', desc: 'Four approved GLM models only.' },
           { title: 'Clean Output', desc: 'Roadmap, chapters, summary, glossary.' },
           { title: 'Secure Setup', desc: 'Server-side proxy with Supabase auth.' },
         ].map((item) => (
-          <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-left backdrop-blur-sm md:p-4">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-200/80">{item.title}</p>
-            <p className="text-sm leading-6 text-white/72">{item.desc}</p>
+          <div key={item.title} className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-sm">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-200/80">{item.title}</p>
+            <p className="text-[13px] leading-5 text-white/72">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -140,14 +140,14 @@ const LandingPage = ({
       <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
         <button
           onClick={onGetStarted}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white px-8 py-3 text-[13px] font-bold tracking-[0.18em] text-black transition-all hover:bg-white/90 sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white px-7 py-2.5 text-[12px] font-bold tracking-[0.18em] text-black transition-all hover:bg-white/90 sm:w-auto"
         >
           Start Building
           <MoveRight className="h-4 w-4" />
         </button>
         <button
           onClick={() => handleTabChange('demo')}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-8 py-3 text-[13px] font-medium tracking-wide text-white/70 transition-all hover:border-white/20 hover:text-white sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-7 py-2.5 text-[12px] font-medium tracking-wide text-white/70 transition-all hover:border-white/20 hover:text-white sm:w-auto"
         >
           View Sample Book
         </button>
@@ -185,20 +185,20 @@ const LandingPage = ({
   );
 
   const renderDemo = () => (
-    <div className="flex min-h-full w-full max-w-[980px] flex-col items-center justify-center px-4 py-6 md:min-h-0">
-      <div className="mb-4 text-center">
+    <div className="flex min-h-full w-full max-w-[920px] flex-col items-center justify-center px-4 py-5 md:min-h-0">
+      <div className="mb-3 text-center">
         <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.4em] text-orange-300/70">Sample Output</span>
-        <h2 className="text-3xl font-bold tracking-tight text-white md:text-[58px]" style={{ fontFamily: "'Rubik', sans-serif" }}>
+        <h2 className="text-3xl font-bold tracking-tight text-white md:text-[48px]" style={{ fontFamily: "'Rubik', sans-serif" }}>
           Review A Real Book
         </h2>
       </div>
 
-      <div className="mb-4 flex flex-wrap justify-center gap-2">
+      <div className="mb-3 flex flex-wrap justify-center gap-2">
         {DEMO_BOOKS.map((book, idx) => (
           <button
             key={book.id}
             onClick={() => setActiveDemoIdx(idx)}
-            className={`rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
+            className={`rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               idx === activeDemoIdx ? 'border-white bg-white text-black' : 'border-white/10 bg-white/[0.03] text-white/60 hover:text-white'
             }`}
           >
@@ -207,19 +207,19 @@ const LandingPage = ({
         ))}
       </div>
 
-      <div className="grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm">
+      <div className="grid w-full max-w-[920px] grid-cols-1 gap-3 md:grid-cols-[1.12fr_0.88fr]">
+        <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Input Prompt</p>
           <p className="mb-4 border-l-2 border-white/10 pl-4 text-sm italic leading-relaxed text-white/65">
             "{activeBook.input}"
           </p>
 
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Generated Title</p>
-          <h3 className="mb-3 text-[38px] font-black leading-none text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
+          <h3 className="mb-3 text-[32px] font-black leading-none text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
             {activeBook.title}
           </h3>
 
-          <p className="mb-4 text-sm leading-7 text-white/65">{activeBook.desc}</p>
+          <p className="mb-3 text-sm leading-6 text-white/65">{activeBook.desc}</p>
 
           <div className="flex items-center gap-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
             <span>{activeBook.words} words</span>
@@ -227,13 +227,13 @@ const LandingPage = ({
           </div>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-[#050505]/60 p-5 backdrop-blur-sm">
-          <div className="mb-4 h-40 rounded-2xl border border-white/10 bg-gradient-to-br from-orange-500/15 to-white/5" />
+        <div className="rounded-[26px] border border-white/10 bg-[#050505]/60 p-4 backdrop-blur-sm">
+          <div className="mb-3 h-28 rounded-2xl border border-white/10 bg-gradient-to-br from-orange-500/15 to-white/5" />
           <a
             href={activeBook.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3 text-xs font-black uppercase tracking-[0.2em] text-black transition-all hover:bg-white/90"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-all hover:bg-white/90"
           >
             <HardDriveDownload className="h-3.5 w-3.5" />
             Download Sample PDF

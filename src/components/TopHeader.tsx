@@ -62,10 +62,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     return (
         <>
             {/* Grok-style header with smooth fade */}
-            <header className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-12 py-4 ${theme === 'light' ? 'bg-gradient-to-b from-white via-white/80 to-transparent pb-8' : 'bg-gradient-to-b from-black via-black/80 to-transparent pb-8'}`} style={{ paddingTop: 'env(safe-area-inset-top, 1rem)' }}>
+            <header className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 ${theme === 'light' ? 'bg-gradient-to-b from-white via-white/80 to-transparent pb-8' : 'bg-gradient-to-b from-black via-black/85 to-transparent pb-8'}`} style={{ paddingTop: 'env(safe-area-inset-top, 1rem)' }}>
                 <div className="flex items-center justify-between mt-2">
                     {/* Brand / Logo */}
-                    <div className="flex items-center gap-2 select-none">
+                    <div className="flex items-center gap-2.5 select-none">
                         <img src={theme === 'light' ? '/black-logo.png' : '/white-logo.png'} alt="Pustakam" className="w-[33px] h-[33px] md:w-8 md:h-8" />
                         <div className="flex flex-col">
                             <span
@@ -75,7 +75,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                                 Pustakam
                             </span>
                             <span
-                                className={`text-[10px] tracking-wide ${theme === 'light' ? 'text-gray-400' : 'text-gray-500'}`}
+                                className={`text-[10px] tracking-[0.24em] uppercase ${theme === 'light' ? 'text-gray-400' : 'text-orange-200/55'}`}
                                 style={{ fontFamily: "'Aptos-Mono', monospace" }}
                             >
                                 {AI_SUITE_NAME}
@@ -95,10 +95,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                             <div className="relative hidden md:block">
                                 <button
                                     onClick={() => setShowModelMenu(!showModelMenu)}
-                                    className={`flex items-center gap-2 pl-4 pr-3 py-2 rounded-full transition-all text-sm font-medium
+                                    className={`flex items-center gap-2 pl-4 pr-3 py-2 rounded-full transition-all text-sm font-medium border
                             ${theme === 'light'
-                                            ? 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                                            : 'bg-[#1a1a1a] hover:bg-[#252525] text-gray-200'}
+                                            ? 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-gray-200'
+                                            : 'bg-white/[0.04] hover:bg-white/[0.08] text-gray-200 border-white/10 backdrop-blur-xl'}
                         `}
                                 >
                                     <span>{currentModelName}</span>
@@ -187,7 +187,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                         {/* Usage Guide Quick Link */}
                         <button
                             onClick={onOpenDocs}
-                            className={`p-2 rounded-lg transition-colors ${theme === 'light' ? 'text-gray-400 hover:text-orange-500 hover:bg-orange-50' : 'text-gray-500 hover:text-orange-400 hover:bg-white/5'}`}
+                            className={`p-2 rounded-full transition-colors border ${theme === 'light' ? 'text-gray-400 hover:text-orange-500 hover:bg-orange-50 border-gray-200' : 'text-gray-500 hover:text-orange-400 hover:bg-white/5 border-white/10 bg-white/[0.03]'}`}
                             title="Usage Guide"
                         >
                             <BookOpen size={20} />
@@ -196,7 +196,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                         {/* API Documentation Quick Link */}
                         <button
                             onClick={onOpenAPIDocs}
-                            className={`p-2 rounded-lg transition-colors ${theme === 'light' ? 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50' : 'text-gray-500 hover:text-emerald-400 hover:bg-white/5'}`}
+                            className={`p-2 rounded-full transition-colors border ${theme === 'light' ? 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 border-gray-200' : 'text-gray-500 hover:text-emerald-400 hover:bg-white/5 border-white/10 bg-white/[0.03]'}`}
                             title="API Documentation"
                         >
                             <Shield size={20} />
@@ -264,17 +264,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                         ) : authEnabled ? (
                             <button
                                 onClick={onOpenAuth}
-                                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold shadow-lg hover:shadow-orange-500/20 transition-all"
+                                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full text-sm font-semibold shadow-lg hover:shadow-orange-500/20 transition-all"
                             >
                                 <User size={18} />
                                 <span>Sign In</span>
                             </button>
                         ) : (
                             <div
-                                className={`px-4 py-2 rounded-lg text-sm font-semibold border ${
+                                className={`px-4 py-2 rounded-full text-sm font-semibold border ${
                                     theme === 'light'
                                         ? 'bg-white border-gray-200 text-gray-500'
-                                        : 'bg-white/5 border-white/10 text-gray-400'
+                                        : 'bg-white/[0.03] border-white/10 text-gray-400'
                                 }`}
                             >
                                 Local Preview
