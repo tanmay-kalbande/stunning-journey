@@ -1,6 +1,6 @@
 // src/components/SettingsModal.tsx
 import React from 'react';
-import { X, Shield, Database, Download, Upload, Trash2, Key, Settings, User, Zap, Globe, Cpu, BookOpen, AlertTriangle, BookMarked, ChevronRight, Crown, Sparkles, Calendar, Sun, Moon, Info } from 'lucide-react';
+import { X, Database, Download, Upload, Trash2, Settings, Sparkles, Globe, Cpu, BookOpen, ChevronRight, Crown, Sun, Moon, Info, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { APISettings } from '../types';
 import { storageUtils } from '../utils/storage';
@@ -28,7 +28,8 @@ interface SettingsModalProps {
   }) => void;
 }
 
-type ActiveTab = 'personality' | 'keys' | 'data' | 'about';
+// Only three real tabs — 'keys' was broken (immediately redirected away) so removed
+type ActiveTab = 'personality' | 'data' | 'about';
 
 interface ImportPreview {
   books: any[];
@@ -39,9 +40,20 @@ interface ImportPreview {
   };
 }
 
-export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme, onToggleTheme, onOpenAPIDocs, onOpenUsageGuide, onOpenCompliance, showAlertDialog }: SettingsModalProps) {
+export function SettingsModal({
+  isOpen,
+  onClose,
+  settings,
+  onSaveSettings,
+  theme,
+  onToggleTheme,
+  onOpenAPIDocs,
+  onOpenUsageGuide,
+  onOpenCompliance,
+  showAlertDialog,
+}: SettingsModalProps) {
   const [localSettings, setLocalSettings] = React.useState<APISettings>(settings);
-  const { profile, isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState<ActiveTab>('personality');
   const [importPreview, setImportPreview] = React.useState<ImportPreview | null>(null);
   const [showImportModal, setShowImportModal] = React.useState(false);
@@ -49,18 +61,13 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
   const [isSaving, setIsSaving] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => setLocalSettings(settings), [settings, isOpen]);
   React.useEffect(() => {
-    if (activeTab === 'keys') {
-      setActiveTab('personality');
-    }
-  }, [activeTab]);
+    setLocalSettings(settings);
+  }, [settings, isOpen]);
 
   const handleSave = () => {
     setIsSaving(true);
     onSaveSettings(localSettings);
-    // In a real app, you might wait for an API response before closing
-    // For local settings, we can close immediately or after a small delay
     setTimeout(() => {
       setIsSaving(false);
       onClose();
@@ -72,7 +79,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
       books: storageUtils.getBooks(user?.id),
       settings: storageUtils.getSettings(),
       exportDate: new Date().toISOString(),
-      version: '1.0.0'
+      version: '1.0.0',
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -94,29 +101,28 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
         const existingBooks = storageUtils.getBooks(user?.id);
         const existingSettings = storageUtils.getSettings();
 
-        const duplicateBooks = importData.books ?
-          importData.books.filter((importBook: any) =>
-            existingBooks.some(existingBook => existingBook.id === importBook.id)
-          ).length : 0;
+        const duplicateBooks = importData.books
+          ? importData.books.filter((importBook: any) =>
+              existingBooks.some((eb) => eb.id === importBook.id)
+            ).length
+          : 0;
 
-        const settingsConflict = importData.settings &&
+        const settingsConflict =
+          importData.settings &&
           JSON.stringify(existingSettings) !== JSON.stringify(importData.settings);
 
         setImportPreview({
           books: importData.books || [],
           settings: importData.settings || existingSettings,
-          conflicts: {
-            duplicateBooks,
-            settingsConflict
-          }
+          conflicts: { duplicateBooks, settingsConflict },
         });
         setShowImportModal(true);
-      } catch (error) {
+      } catch {
         showAlertDialog({
           type: 'error',
           title: 'Invalid File',
           message: 'Failed to read import file. Please check the file format.',
-          confirmText: 'OK'
+          confirmText: 'OK',
         });
       }
     };
@@ -136,27 +142,15 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
         }
       } else {
         const existingBooks = storageUtils.getBooks(user?.id);
-        const existingSettings = storageUtils.getSettings();
-
         const mergedBooks = [...existingBooks];
         importPreview.books.forEach((importBook: any) => {
-          const exists = mergedBooks.some(existing => existing.id === importBook.id);
-          if (!exists) {
+          if (!mergedBooks.some((eb) => eb.id === importBook.id)) {
             mergedBooks.push(importBook);
           }
         });
         storageUtils.saveBooks(mergedBooks, user?.id);
-
-        const mergedSettings = { ...importPreview.settings };
-        Object.keys(existingSettings).forEach(key => {
-          if (existingSettings[key as keyof APISettings] &&
-            key.includes('ApiKey') &&
-            existingSettings[key as keyof APISettings] !== '') {
-            mergedSettings[key as keyof APISettings] = existingSettings[key as keyof APISettings];
-          }
-        });
-        setLocalSettings(mergedSettings);
-        storageUtils.saveSettings(mergedSettings);
+        storageUtils.saveSettings(importPreview.settings);
+        setLocalSettings(importPreview.settings);
       }
 
       setShowImportModal(false);
@@ -164,22 +158,16 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
       showAlertDialog({
         type: 'success',
         title: 'Import Successful',
-        message: `Data imported successfully using ${mode} mode! The app will now reload.`,
+        message: `Data imported using ${mode} mode. The app will reload.`,
         confirmText: 'OK',
-        onConfirm: () => window.location.reload()
+        onConfirm: () => window.location.reload(),
       });
     } catch (error) {
-      console.error('Import failed:', error);
       let message = 'Failed to import data. Please check the file and try again.';
       if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-        message = 'Import failed: Your browser storage is full. Please clear some space and try again.';
+        message = 'Import failed: Browser storage is full.';
       }
-      showAlertDialog({
-        type: 'error',
-        title: 'Import Failed',
-        message,
-        confirmText: 'Dismiss'
-      });
+      showAlertDialog({ type: 'error', title: 'Import Failed', message, confirmText: 'Dismiss' });
     }
   };
 
@@ -187,7 +175,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
     showAlertDialog({
       type: 'confirm',
       title: 'Confirm Data Deletion',
-      message: 'This will permanently delete all books and settings. This action cannot be undone. Are you sure?',
+      message: 'This will permanently delete all books and settings. This action cannot be undone.',
       confirmText: 'Yes, Delete All',
       cancelText: 'Cancel',
       onConfirm: () => {
@@ -195,23 +183,33 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
         showAlertDialog({
           type: 'success',
           title: 'Data Cleared',
-          message: 'All data has been cleared. The app will now reload.',
+          message: 'All data has been cleared. The app will reload.',
           confirmText: 'OK',
-          onConfirm: () => window.location.reload()
+          onConfirm: () => window.location.reload(),
         });
-      }
+      },
     });
   };
 
   if (!isOpen) return null;
 
+  const NAV_TABS: { id: ActiveTab; label: string; icon: React.ElementType }[] = [
+    { id: 'personality', label: 'Persona & Identity', icon: Sparkles },
+    { id: 'data',        label: 'Data & Backup',      icon: Database },
+    { id: 'about',       label: 'About',               icon: Cpu },
+  ];
+
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-3 md:items-center md:p-4 backdrop-blur-md" onClick={onClose}>
+      <div
+        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-3 md:items-center md:p-4 backdrop-blur-md"
+        onClick={onClose}
+      >
         <div
           className="relative my-auto flex max-h-[calc(100vh-24px)] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#080808] shadow-[0_30px_120px_rgba(0,0,0,0.55)] md:max-h-[calc(100vh-40px)]"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
+          {/* Background effects */}
           <div className="pointer-events-none absolute inset-0 opacity-45">
             <NebulaBackground opacity={0.28} />
           </div>
@@ -237,60 +235,66 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
           </div>
 
           <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden flex-col md:flex-row">
+            {/* Sidebar */}
             <div className="flex w-full flex-col overflow-hidden border-b border-white/[0.06] bg-black/35 backdrop-blur-xl md:w-[280px] md:border-b-0 md:border-r">
               <div className="flex flex-1 items-center overflow-x-auto p-4 whitespace-nowrap custom-scrollbar md:flex-col md:items-start md:overflow-x-hidden md:overflow-y-auto md:p-6 md:whitespace-normal">
                 <div className="flex items-center gap-2 mb-0 md:mb-8 mr-6 md:mr-0 shrink-0">
                   <div className="h-6 w-1.5 rounded-full bg-gradient-to-b from-orange-500 to-amber-300 md:h-8 md:w-2" />
                   <h2 className="text-base font-black uppercase tracking-tight text-white md:text-xl">System</h2>
                 </div>
+
                 <nav className="flex md:flex-col space-x-1 md:space-x-0 md:space-y-1 shrink-0">
-                  {[
-                    { id: 'personality', label: 'Persona & Identity', icon: Sparkles },
-                    { id: 'data', label: 'Data & Backup', icon: Database },
-                    { id: 'about', label: 'About', icon: Cpu },
-                  ].map((tab) => (
+                  {NAV_TABS.map((tab) => (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex items-center gap-3 rounded-2xl px-4 py-2.5 text-left text-xs font-bold whitespace-nowrap transition-all duration-300 md:py-3 md:text-sm ${activeTab === tab.id
-                        ? 'bg-white/[0.08] text-orange-300 ring-1 ring-orange-400/20'
-                        : 'text-white/50 hover:bg-white/[0.04] hover:text-white'
-                        }`}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-3 rounded-2xl px-4 py-2.5 text-left text-xs font-bold whitespace-nowrap transition-all duration-300 md:py-3 md:text-sm ${
+                        activeTab === tab.id
+                          ? 'bg-white/[0.08] text-orange-300 ring-1 ring-orange-400/20'
+                          : 'text-white/50 hover:bg-white/[0.04] hover:text-white'
+                      }`}
                     >
-                      <tab.icon size={activeTab === tab.id ? 18 : 16} className={`shrink-0 ${activeTab === tab.id ? 'text-orange-300' : 'opacity-50'}`} />
+                      <tab.icon
+                        size={activeTab === tab.id ? 18 : 16}
+                        className={`shrink-0 ${activeTab === tab.id ? 'text-orange-300' : 'opacity-50'}`}
+                      />
                       <span>{tab.label}</span>
                     </button>
                   ))}
                 </nav>
 
+                {/* Resource links */}
                 <div className="hidden md:block mt-8 pt-6 border-t border-white/[0.06] w-full">
-                  <p className="mb-4 px-4 text-[10px] font-black uppercase tracking-widest text-white/35">Resource Center</p>
+                  <p className="mb-4 px-4 text-[10px] font-black uppercase tracking-widest text-white/35">Resources</p>
                   <div className="space-y-1">
                     <button
                       onClick={onOpenUsageGuide}
                       className="flex w-full items-center gap-3 px-4 py-2 text-xs font-bold text-white/50 transition-colors hover:text-orange-300"
                     >
-                      <Info size={14} />
-                      Usage Guide
+                      <Info size={14} /> Usage Guide
                     </button>
                     <button
                       onClick={onOpenCompliance}
                       className="flex w-full items-center gap-3 px-4 py-2 text-xs font-bold text-white/50 transition-colors hover:text-orange-300"
                     >
-                      <Shield size={14} />
-                      Compliance
+                      <Shield size={14} /> Compliance
                     </button>
                   </div>
                 </div>
               </div>
 
+              {/* Theme toggle (desktop only) */}
               <div className="hidden md:flex mt-auto border-t border-white/[0.06] p-6">
                 <button
                   onClick={onToggleTheme}
                   className="group flex w-full items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 transition-all hover:border-orange-500/30"
                 >
                   <div className="flex items-center gap-3">
-                    {theme === 'light' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-orange-300" />}
+                    {theme === 'light' ? (
+                      <Sun size={18} className="text-amber-400" />
+                    ) : (
+                      <Moon size={18} className="text-orange-300" />
+                    )}
                     <span className="text-sm font-bold capitalize text-white/80">{theme} Mode</span>
                   </div>
                   <div className={`w-8 h-4 rounded-full relative transition-colors ${theme === 'dark' ? 'bg-orange-500' : 'bg-gray-200'}`}>
@@ -300,257 +304,100 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
               </div>
             </div>
 
+            {/* Content area */}
             <div className="flex-1 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] p-5 text-[var(--color-text-primary)] scroll-smooth md:p-6">
-              {/* Personality Tab */}
+
+              {/* ── PERSONALITY TAB ── */}
               {activeTab === 'personality' && (
                 <div className="space-y-8">
                   <header>
                     <h3 className="mb-1 text-lg font-bold text-white">Persona & Identity</h3>
-                    <p className="text-sm text-white/50">Customize Pustakam's personality and appearance.</p>
+                    <p className="text-sm text-white/50">Customize appearance and default generation behaviour.</p>
                   </header>
 
-                  <section className="space-y-6">
-                    <div className="space-y-4">
-                      <label className="text-xs font-bold uppercase tracking-widest text-white/35">Theme Preference</label>
-                      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
+                  {/* Theme */}
+                  <section className="space-y-4">
+                    <label className="text-xs font-bold uppercase tracking-widest text-white/35">Theme Preference</label>
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
+                      {(['light', 'dark'] as const).map((t) => (
                         <button
-                          onClick={() => theme === 'dark' && onToggleTheme()}
-                          className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${theme === 'light'
-                            ? 'bg-white text-gray-900 shadow-md ring-1 ring-black/5'
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+                          key={t}
+                          onClick={() => theme !== t && onToggleTheme()}
+                          className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 capitalize font-bold text-sm ${
+                            theme === t
+                              ? 'bg-white/10 text-white shadow-md ring-1 ring-white/10'
+                              : 'text-gray-500 hover:text-white hover:bg-white/5'
+                          }`}
                         >
-                          <Sun size={18} className={theme === 'light' ? 'text-orange-500' : ''} />
-                          <span className="font-bold text-sm">Light Mode</span>
+                          {t === 'light' ? <Sun size={18} className={theme === 'light' ? 'text-orange-500' : ''} /> : <Moon size={18} className={theme === 'dark' ? 'text-orange-500' : ''} />}
+                          {t} Mode
                         </button>
-                        <button
-                          onClick={() => theme === 'light' && onToggleTheme()}
-                          className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${theme === 'dark'
-                            ? 'bg-[#1a1a1a] dark:bg-zinc-800 text-white shadow-md ring-1 ring-white/10'
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-                        >
-                          <Moon size={18} className={theme === 'dark' ? 'text-orange-500' : ''} />
-                          <span className="font-bold text-sm">Dark Mode</span>
-                        </button>
-                      </div>
-                      <p className="text-[10px] italic text-white/35">Adjusts the overall interface colors for better visibility.</p>
+                      ))}
                     </div>
+                  </section>
 
-                    <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-white/[0.05]">
-                      <label className="text-xs font-bold uppercase tracking-widest text-white/35">Default Generation Mode</label>
-                      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
+                  {/* Generation mode */}
+                  <section className="space-y-4 pt-6 border-t border-white/[0.05]">
+                    <label className="text-xs font-bold uppercase tracking-widest text-white/35">Default Generation Mode</label>
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
+                      {[
+                        { value: 'stellar',   label: 'Stellar Mode', icon: Sparkles },
+                        { value: 'blackhole', label: 'Street Mode',  icon: Crown },
+                      ].map(({ value, label, icon: Icon }) => (
                         <button
-                          onClick={() => setLocalSettings((p: APISettings) => ({ ...p, defaultGenerationMode: 'stellar' }))}
-                          className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${localSettings.defaultGenerationMode === 'stellar'
-                            ? (theme === 'light' ? 'bg-white text-cyan-600 shadow-md ring-1 ring-black/5' : 'bg-cyan-500/20 text-cyan-400 shadow-md ring-1 ring-white/10')
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+                          key={value}
+                          onClick={() => setLocalSettings(p => ({ ...p, defaultGenerationMode: value as any }))}
+                          className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 font-bold text-sm ${
+                            localSettings.defaultGenerationMode === value
+                              ? 'bg-orange-500/20 text-orange-400 shadow-md ring-1 ring-white/10'
+                              : 'text-gray-500 hover:text-white hover:bg-white/5'
+                          }`}
                         >
-                          <Sparkles size={18} />
-                          <span className="font-bold text-sm">Stellar Mode</span>
+                          <Icon size={18} /> {label}
                         </button>
-                        <button
-                          onClick={() => setLocalSettings((p: APISettings) => ({ ...p, defaultGenerationMode: 'blackhole' }))}
-                          className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${localSettings.defaultGenerationMode === 'blackhole'
-                            ? (theme === 'light' ? 'bg-white text-orange-600 shadow-md ring-1 ring-black/5' : 'bg-orange-500/20 text-orange-400 shadow-md ring-1 ring-white/10')
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-                        >
-                          <Crown size={18} />
-                          <span className="font-bold text-sm">Street Mode</span>
-                        </button>
-                      </div>
-                      <p className="text-[10px] italic text-white/35">
-                        Sets the default personality for new books. "Stellar" is professional; "Street" is raw and unrestricted.
-                      </p>
+                      ))}
                     </div>
+                    <p className="text-[10px] italic text-white/35">
+                      Stellar is professional. Street is raw and unrestricted.
+                    </p>
+                  </section>
 
-                    <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-white/[0.05]">
-                      <label className="text-xs font-bold uppercase tracking-widest text-white/35">Default Language</label>
-                      <div className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1 md:grid-cols-3">
+                  {/* Language */}
+                  <section className="space-y-4 pt-6 border-t border-white/[0.05]">
+                    <label className="text-xs font-bold uppercase tracking-widest text-white/35">Default Language</label>
+                    <div className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1 md:grid-cols-3">
+                      {[
+                        { value: 'en', label: 'English' },
+                        ...(localSettings.defaultGenerationMode === 'blackhole'
+                          ? [
+                              { value: 'hi', label: 'Hindi (Tapori)' },
+                              { value: 'mr', label: 'Marathi (Tapori)' },
+                            ]
+                          : []),
+                      ].map(({ value, label }) => (
                         <button
-                          onClick={() => setLocalSettings((p: APISettings) => ({ ...p, defaultLanguage: 'en' }))}
-                          className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${localSettings.defaultLanguage === 'en'
-                            ? (theme === 'light' ? 'bg-white text-blue-600 shadow-md ring-1 ring-black/5' : 'bg-blue-500/20 text-blue-400 shadow-md ring-1 ring-white/10')
-                            : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
+                          key={value}
+                          onClick={() => setLocalSettings(p => ({ ...p, defaultLanguage: value as any }))}
+                          className={`flex items-center justify-center gap-2 py-3 rounded-lg transition-all duration-200 font-bold text-sm ${
+                            localSettings.defaultLanguage === value
+                              ? 'bg-blue-500/20 text-blue-400 shadow-md ring-1 ring-white/10'
+                              : 'text-gray-500 hover:text-white hover:bg-white/5'
+                          }`}
                         >
-                          <Globe size={16} />
-                          <span className="font-bold text-sm">English</span>
+                          <Globe size={16} /> {label}
                         </button>
-                        {localSettings.defaultGenerationMode === 'blackhole' && (
-                          <>
-                            <button
-                              onClick={() => setLocalSettings((p: APISettings) => ({ ...p, defaultLanguage: 'hi' }))}
-                              className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${localSettings.defaultLanguage === 'hi'
-                                ? (theme === 'light' ? 'bg-white text-orange-600 shadow-md ring-1 ring-black/5' : 'bg-orange-500/20 text-orange-400 shadow-md ring-1 ring-white/10')
-                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-                            >
-                              <span className="font-bold text-sm">Hindi (Tapori)</span>
-                            </button>
-                            <button
-                              onClick={() => setLocalSettings((p: APISettings) => ({ ...p, defaultLanguage: 'mr' }))}
-                              className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${localSettings.defaultLanguage === 'mr'
-                                ? (theme === 'light' ? 'bg-white text-orange-600 shadow-md ring-1 ring-black/5' : 'bg-orange-500/20 text-orange-400 shadow-md ring-1 ring-white/10')
-                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
-                            >
-                              <span className="font-bold text-sm">Marathi (Tapori)</span>
-                            </button>
-                          </>
-                        )}
-                      </div>
-                      <p className="text-[10px] italic text-white/35">
-                        {localSettings.defaultGenerationMode === 'blackhole'
-                          ? 'Desi "Tapori" modes are only available for Street personality.'
-                          : 'Standard English used for Stellar Mode.'}
-                      </p>
+                      ))}
                     </div>
+                    <p className="text-[10px] italic text-white/35">
+                      {localSettings.defaultGenerationMode === 'blackhole'
+                        ? 'Desi "Tapori" modes are only available for Street personality.'
+                        : 'Standard English used for Stellar Mode.'}
+                    </p>
                   </section>
                 </div>
               )}
-              {/* API Keys Tab */}
-              {activeTab === 'keys' && (
-                <div className="space-y-8">
-                  <header>
-                    <h3 className="mb-1 text-lg font-bold text-white">Injin Stack Setup</h3>
-                    <p className="text-sm text-white/50">This build is locked to four Zhipu GLM models and runs through the secure server proxy.</p>
-                  </header>
 
-                  <div className="space-y-5 rounded-[28px] border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-xl">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Server Environment</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                        Add <code>ZHIPU_API_KEY</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code>, and <code>VITE_USE_PROXY=true</code> in Vercel and local development.
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">Approved Models</p>
-                      <div className="space-y-2">
-                        {ZHIPU_MODELS.map(model => (
-                          <div key={model.model} className="flex items-start justify-between gap-4 rounded-xl border border-white/[0.08] bg-black/20 px-4 py-3">
-                            <div>
-                              <p className="text-sm font-bold text-gray-900 dark:text-white">{model.name}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{model.tagline}</p>
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-orange-500">{model.model}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Current Mode</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {APP_AI_BRANDLINE} uses the {AI_SUITE_NAME} proxy path, so no browser-side provider keys are needed anymore.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-100 dark:border-white/[0.05]">
-                    <button
-                      onClick={onOpenAPIDocs}
-                      className="text-xs font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white flex items-center gap-2 transition-colors"
-                    >
-                      <BookMarked size={14} />
-                      View API Setup Documentation
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Subscription Tab */}
-              {activeTab === 'subscription' && (
-                <div className="space-y-8">
-                  <header>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Subscription</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Manage your plan details.</p>
-                  </header>
-
-                  {!isAuthenticated ? (
-                    <div className="bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl p-6 text-center">
-                      <User size={32} className="mx-auto text-gray-400 mb-3" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Sign in to view your subscription details.</p>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Premium Plan Card - Redesigned */}
-                      <section className="relative overflow-hidden rounded-2xl">
-                        {/* Gradient Background with Glassmorphism */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-teal-500/15 to-green-500/20 dark:from-emerald-500/10 dark:via-teal-500/5 dark:to-green-500/10" />
-                        <div className="absolute inset-0 backdrop-blur-xl" />
-
-                        {/* Animated Border Gradient */}
-                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-400/40 via-teal-400/30 to-green-400/40 dark:from-emerald-400/20 dark:via-teal-400/15 dark:to-green-400/20" style={{ padding: '1px' }}>
-                          <div className="h-full w-full rounded-2xl bg-white/90 dark:bg-[#0a0a0f]/90 backdrop-blur-xl" />
-                        </div>
-
-                        {/* Content */}
-                        <div className="relative p-8">
-                          {/* Header with Crown Icon */}
-                          <div className="flex items-start justify-between mb-6">
-                            <div className="flex items-center gap-4">
-                              <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl blur-lg opacity-50" />
-                                <div className="relative p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
-                                  <Crown size={24} className="text-white" />
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Active Plan</p>
-                                <h4 className="text-2xl font-black tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                                  {profile?.plan === 'monthly' ? 'Monthly PRO' : 'Yearly PRO'}
-                                </h4>
-                              </div>
-                            </div>
-                            <div className="px-3 py-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30">
-                              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Premium</span>
-                            </div>
-                          </div>
-
-                          {/* Features Grid */}
-                          <div className="space-y-4 mb-6">
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-emerald-500/5 to-transparent dark:from-emerald-500/10 dark:to-transparent border-l-2 border-emerald-500">
-                              <div className="p-2 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20">
-                                <Sparkles size={18} className="text-emerald-600 dark:text-emerald-400" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white">Unlimited Generation</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Create unlimited books with AI</p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-teal-500/5 to-transparent dark:from-teal-500/10 dark:to-transparent border-l-2 border-teal-500">
-                              <div className="p-2 rounded-lg bg-teal-500/10 dark:bg-teal-500/20">
-                                <Calendar size={18} className="text-teal-600 dark:text-teal-400" />
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white">Plan Valid Until</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  {profile?.plan_expires_at
-                                    ? new Date(profile.plan_expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-                                    : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Stats Section */}
-                          <div className="pt-6 border-t border-gray-200/50 dark:border-white/[0.05]">
-                            <div className="flex items-center justify-end">
-                              <div className="text-right">
-                                <p className="text-xs font-bold text-gray-400 dark:text-gray-500 mb-1">Status</p>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Active</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </section>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Data Tab */}
+              {/* ── DATA TAB ── */}
               {activeTab === 'data' && (
                 <div className="space-y-8">
                   <header>
@@ -563,45 +410,40 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={handleExportData}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-bold rounded-lg hover:opacity-90 transition-opacity whitespace-nowrap"
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-white text-black text-xs font-bold rounded-lg hover:opacity-90 transition-opacity whitespace-nowrap"
                       >
-                        <Download size={14} />
-                        Export Archive
+                        <Download size={14} /> Export Archive
                       </button>
-                      <label className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 dark:border-white/[0.1] text-gray-700 dark:text-white text-xs font-bold rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-all cursor-pointer whitespace-nowrap">
-                        <Upload size={14} />
-                        Restore Library
+                      <label className="flex items-center justify-center gap-2 px-4 py-2 border border-white/[0.1] text-white text-xs font-bold rounded-lg hover:bg-white/[0.03] transition-all cursor-pointer whitespace-nowrap">
+                        <Upload size={14} /> Restore Library
                         <input type="file" ref={fileInputRef} onChange={handleImportPreview} accept=".json" className="hidden" />
                       </label>
                     </div>
                   </section>
 
-
-
                   <section className="pt-8 space-y-3">
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-red-400">Danger Zone</h4>
                     <div className="p-4 rounded-xl border border-red-500/10 bg-red-500/[0.02]">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
-                        Resetting the engine will purge all knowledge bases, session history, and GLM stack preferences.
+                      <p className="text-xs text-gray-400 mb-4 leading-relaxed">
+                        Resetting the engine will purge all knowledge bases, session history, and preferences.
                       </p>
                       <button
-                      onClick={handleClearData}
-                      className="text-xs font-black text-red-500 hover:text-red-400 flex items-center gap-2 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                      Purge All System Data
+                        onClick={handleClearData}
+                        className="text-xs font-black text-red-500 hover:text-red-400 flex items-center gap-2 transition-colors"
+                      >
+                        <Trash2 size={14} /> Purge All System Data
                       </button>
                     </div>
                   </section>
                 </div>
               )}
 
-              {/* Platform Tab */}
+              {/* ── ABOUT TAB ── */}
               {activeTab === 'about' && (
                 <div className="space-y-10">
-                    <div className="flex items-start gap-6">
+                  <div className="flex items-start gap-6">
                     <div className="w-16 h-16 rounded-xl bg-white/[0.04] flex items-center justify-center border border-white/10 shrink-0">
-                      <img src="/white-logo.png" alt="Logo" className="w-10 h-10 drop-shadow-sm dark:invert-0 invert" />
+                      <img src="/white-logo.png" alt="Logo" className="w-10 h-10 dark:invert-0 invert" />
                     </div>
                     <div>
                       <h3 className="text-xl font-black tracking-tight text-white">{APP_AI_BRANDLINE.toUpperCase()}</h3>
@@ -612,42 +454,52 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                     </div>
                   </div>
 
+                  {/* Stats grid */}
                   <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     {[
-                      { icon: Zap, label: 'Neural Core', val: 'Low-latency' },
-                      { icon: BookOpen, label: 'Export Engine', val: 'PDF / MD / TXT' },
-                      { icon: Globe, label: 'Architecture', val: 'Hybrid PWA' },
-                      { icon: Shield, label: 'Security', val: 'Client-side Enc.' }
-                    ].map((idx, i) => (
-                      <div key={i} className="space-y-1.5">
-                        <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
-                          <idx.icon size={12} />
-                          <span className="text-[10px] font-bold uppercase tracking-widest">{idx.label}</span>
-                        </div>
-                        <p className="text-sm font-bold text-gray-900 dark:text-white ml-5">{idx.val}</p>
+                      { label: 'Models',      val: `${ZHIPU_MODELS.length} GLM` },
+                      { label: 'Export',      val: 'PDF / MD' },
+                      { label: 'Architecture', val: 'Hybrid PWA' },
+                      { label: 'Security',    val: 'Client-side Enc.' },
+                    ].map(({ label, val }) => (
+                      <div key={label} className="space-y-1.5">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">{label}</p>
+                        <p className="text-sm font-bold text-white ml-0">{val}</p>
                       </div>
                     ))}
                   </div>
 
-                  <div className="space-y-4 pt-10 border-t border-gray-100 dark:border-white/[0.05]">
+                  <div className="space-y-4 pt-10 border-t border-white/[0.05]">
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Developer Liaison</p>
-                      <a href="https://www.linkedin.com/in/tanmay-kalbande/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-gray-900 dark:text-white hover:text-gray-300 transition-colors">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Developer</p>
+                      <a
+                        href="https://www.linkedin.com/in/tanmay-kalbande/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-white hover:text-gray-300 transition-colors"
+                      >
                         T. KALBANDE
                       </a>
                     </div>
                     <button
                       onClick={onOpenUsageGuide}
-                      className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] hover:border-indigo-500/20 transition-all text-xs font-bold group"
+                      className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:border-indigo-500/20 transition-all text-xs font-bold group"
                     >
-                      <span className="text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors tracking-tight">Open User Manual & Guide</span>
+                      <span className="text-gray-400 group-hover:text-white transition-colors">Open User Manual & Guide</span>
+                      <ChevronRight size={14} className="text-gray-300" />
+                    </button>
+                    <button
+                      onClick={onOpenAPIDocs}
+                      className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:border-indigo-500/20 transition-all text-xs font-bold group"
+                    >
+                      <span className="text-gray-400 group-hover:text-white transition-colors">API Documentation</span>
                       <ChevronRight size={14} className="text-gray-300" />
                     </button>
                     <button
                       onClick={() => setShowDisclaimer(true)}
-                      className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] hover:border-indigo-500/20 transition-all text-xs font-bold group"
+                      className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:border-indigo-500/20 transition-all text-xs font-bold group"
                     >
-                      <span className="text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors tracking-tight">System Regulatory Compliance</span>
+                      <span className="text-gray-400 group-hover:text-white transition-colors">System Regulatory Compliance</span>
                       <ChevronRight size={14} className="text-gray-300" />
                     </button>
                   </div>
@@ -674,74 +526,65 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                 disabled={isSaving}
                 className="flex-[2] md:flex-none px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-black rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest"
               >
-                {isSaving ? 'Synchronizing...' : 'Save Changes'}
+                {isSaving ? 'Saving…' : 'Save Changes'}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Import Preview Modal */}
+      {/* Import confirm modal */}
       {showImportModal && importPreview && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#0a0a0f] border border-[var(--color-border)] rounded-2xl shadow-2xl w-full max-w-md p-8">
-            <header className="mb-6">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                <AlertTriangle className="text-orange-500" size={20} />
-                Confirm Data Import
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Review the details below before proceeding.</p>
-            </header>
+          <div className="bg-[#0a0a0f] border border-[var(--color-border)] rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <h3 className="text-lg font-bold text-white mb-1">Confirm Data Import</h3>
+            <p className="text-sm text-gray-400 mb-6">Review the details below before proceeding.</p>
 
-            <div className="space-y-6 mb-8 text-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 rounded-lg bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05]">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Items Included</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{importPreview.books.length} Books</p>
-                </div>
-                <div className="p-3 rounded-lg bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05]">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Configuration</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{importPreview.settings ? 'Encrypted' : 'None'}</p>
-                </div>
+            <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+              <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Items</p>
+                <p className="font-bold text-white">{importPreview.books.length} Books</p>
               </div>
-
-              {(importPreview.conflicts.duplicateBooks > 0 || importPreview.conflicts.settingsConflict) && (
-                <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/[0.02]">
-                  <p className="text-xs font-bold text-orange-600 dark:text-orange-400 mb-2">Detected Overwrites</p>
-                  <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-1 list-disc pl-4">
-                    {importPreview.conflicts.duplicateBooks > 0 && <li>{importPreview.conflicts.duplicateBooks} existing records will be updated</li>}
-                    {importPreview.conflicts.settingsConflict && <li>Provider configurations will be adjusted</li>}
-                  </ul>
-                </div>
-              )}
+              <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Config</p>
+                <p className="font-bold text-white">{importPreview.settings ? 'Included' : 'None'}</p>
+              </div>
             </div>
+
+            {importPreview.conflicts.duplicateBooks > 0 && (
+              <div className="p-4 rounded-xl border border-orange-500/20 bg-orange-500/[0.02] mb-6">
+                <p className="text-xs font-bold text-orange-400 mb-1">⚠️ Conflicts detected</p>
+                <p className="text-xs text-gray-400">{importPreview.conflicts.duplicateBooks} existing record(s) will be updated</p>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => executeImport('merge')}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs font-black py-3 rounded-lg shadow-lg shadow-orange-500/10 transition-all"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs font-black py-3 rounded-lg transition-all"
               >
                 Merge with Current Library
               </button>
               <button
                 onClick={() => executeImport('replace')}
-                className="w-full border border-gray-200 dark:border-white/[0.1] text-gray-700 dark:text-white text-xs font-bold py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-all"
+                className="w-full border border-white/[0.1] text-white text-xs font-bold py-3 rounded-lg hover:bg-white/[0.03] transition-all"
               >
                 Replace Entire Library
               </button>
               <button
                 onClick={() => { setShowImportModal(false); setImportPreview(null); }}
-                className="w-full text-xs font-bold text-gray-400 hover:text-gray-600 py-3 transition-colors"
+                className="w-full text-xs font-bold text-gray-400 hover:text-gray-200 py-3 transition-colors"
               >
-                Cancel Import
+                Cancel
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Overlays */}
-      {showDisclaimer && <DisclaimerPage isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />}
+      {showDisclaimer && (
+        <DisclaimerPage isOpen={showDisclaimer} onClose={() => setShowDisclaimer(false)} />
+      )}
     </>
   );
 }
