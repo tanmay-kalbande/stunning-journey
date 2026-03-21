@@ -366,6 +366,14 @@ const getContextualIcon = (title: string): React.ElementType => {
   return Sparkles;
 };
 
+const getBookCoverTone = (title: string) => {
+  const t = title.toLowerCase();
+  if (t.includes('finance') || t.includes('money') || t.includes('business')) return 'from-emerald-400/45 via-cyan-400/20 to-transparent';
+  if (t.includes('ai') || t.includes('code') || t.includes('tech')) return 'from-orange-400/45 via-amber-300/25 to-transparent';
+  if (t.includes('health') || t.includes('life')) return 'from-rose-400/40 via-orange-300/20 to-transparent';
+  return 'from-blue-400/35 via-violet-300/20 to-transparent';
+};
+
 // Keep PixelAnimation as a legacy alias
 const PixelAnimation = AIWaveAnimation;
 
@@ -1517,14 +1525,6 @@ const BookListGrid = ({
     return Book;
   };
 
-  const getCoverTone = (title: string) => {
-    const t = title.toLowerCase();
-    if (t.includes('finance') || t.includes('money') || t.includes('business')) return 'from-emerald-400/45 via-cyan-400/20 to-transparent';
-    if (t.includes('ai') || t.includes('code') || t.includes('tech')) return 'from-orange-400/45 via-amber-300/25 to-transparent';
-    if (t.includes('health') || t.includes('life')) return 'from-rose-400/40 via-orange-300/20 to-transparent';
-    return 'from-blue-400/35 via-violet-300/20 to-transparent';
-  };
-
   const getStatusBadge = (status: BookProject['status']) =>
     ({
       planning: 'Draft',
@@ -1605,7 +1605,7 @@ const BookListGrid = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredBooks.map((book) => {
                 const completedModules = book.modules.filter((m) => m.status === 'completed').length;
                 const totalModules = book.modules.length;
@@ -1620,16 +1620,16 @@ const BookListGrid = ({
                     onMouseEnter={() => setHoveredBookId(book.id)}
                     onMouseLeave={() => setHoveredBookId(null)}
                     onClick={() => onSelectBook(book.id)}
-                    className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-gray-200/80 bg-white/96 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500/20 dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.04]"
+                    className="group relative cursor-pointer overflow-hidden rounded-[24px] border border-gray-200/80 bg-white/96 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500/20 dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.04]"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div className={`relative h-32 w-[96px] shrink-0 overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-br ${getCoverTone(book.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]`}>
+                      <div className={`relative h-24 w-[74px] shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br ${getBookCoverTone(book.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]`}>
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_38%),linear-gradient(180deg,rgba(8,8,8,0.02),rgba(8,8,8,0.44))]" />
-                        <div className="absolute inset-x-0 bottom-0 p-3">
-                          <div className="mb-2 inline-flex rounded-full border border-white/15 bg-black/20 p-1.5 text-white/90 backdrop-blur-md">
-                            <Icon className="h-3.5 w-3.5" />
+                        <div className="absolute inset-x-0 bottom-0 p-2.5">
+                          <div className="mb-1.5 inline-flex rounded-full border border-white/15 bg-black/20 p-1 text-white/90 backdrop-blur-md">
+                            <Icon className="h-3 w-3" />
                           </div>
-                          <p className="line-clamp-3 text-xs font-semibold uppercase tracking-[0.12em] text-white/90">
+                          <p className="line-clamp-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/90">
                             {book.title}
                           </p>
                         </div>
@@ -1651,14 +1651,14 @@ const BookListGrid = ({
                           </button>
                         </div>
 
-                        <h3 className="line-clamp-2 text-[22px] font-semibold leading-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'Rubik, sans-serif' }}>
+                        <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'Rubik, sans-serif' }}>
                           {book.title}
                         </h3>
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+                        <p className="mt-1.5 line-clamp-2 text-[13px] leading-5 text-[var(--color-text-secondary)]">
                           {book.goal || 'Structured learning project ready for generation and export.'}
                         </p>
 
-                        <div className="mt-5 flex flex-wrap gap-2">
+                        <div className="mt-3.5 flex flex-wrap gap-1.5">
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
                             <FileText size={10} />
                             {totalModules} modules
@@ -1675,8 +1675,8 @@ const BookListGrid = ({
                       </div>
                     </div>
 
-                    <div className="mt-5 border-t border-white/[0.08] pt-4">
-                      <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
+                    <div className="mt-4 border-t border-white/[0.08] pt-3">
+                      <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
                         <span>Progress</span>
                         <span>{completionRatio}%</span>
                       </div>
@@ -2412,7 +2412,7 @@ export function BookView({
                 <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.26em] text-orange-200/70">Book Workspace</p>
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_320px] lg:items-end">
                   <div className="flex items-start gap-5">
-                    <div className={`relative hidden h-44 w-32 shrink-0 overflow-hidden rounded-[26px] border border-white/10 bg-gradient-to-br ${getCoverTone(currentBook.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] md:block`}>
+                    <div className={`relative hidden h-44 w-32 shrink-0 overflow-hidden rounded-[26px] border border-white/10 bg-gradient-to-br ${getBookCoverTone(currentBook.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] md:block`}>
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_35%),linear-gradient(180deg,rgba(8,8,8,0.04),rgba(8,8,8,0.45))]" />
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">Pustakam Injin</p>
