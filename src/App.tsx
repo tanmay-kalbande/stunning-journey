@@ -48,6 +48,7 @@ interface GenerationStatus {
 }
 
 function App() {
+  const [showLocalLanding, setShowLocalLanding] = useState(true);
   const [books, setBooks] = useState<BookProject[]>([]);
   const [settings, setSettings] = useState<APISettings>(() => storageUtils.getSettings());
   const [currentBookId, setCurrentBookId] = useState<string | null>(null);
@@ -294,6 +295,10 @@ function App() {
   };
 
   const hasApiKey = import.meta.env.VITE_USE_PROXY === 'true';
+  const shouldShowLanding =
+    !isLoading &&
+    !isAuthTransitioning &&
+    ((isSupabaseEnabled && !isAuthenticated) || (!isSupabaseEnabled && showLocalLanding));
 
   const getAlternativeModels = () => {
     return ZHIPU_MODELS
@@ -394,7 +399,7 @@ function App() {
     if (!hasApiKey) {
       showAlertDialog({
         type: 'warning',
-        title: 'API Key Required',
+        title: 'Setup Required',
         message: 'The Agni Stack proxy is not enabled yet. Turn on `VITE_USE_PROXY=true` and add the required server env vars before generating books.',
         confirmText: 'Open Setup',
         onConfirm: () => setSettingsOpen(true),
@@ -645,13 +650,37 @@ function App() {
   // =========================================================================
   // Show landing page for unauthenticated users
   // Use isAuthTransitioning to prevent flash during login transition
-  if (isSupabaseEnabled && !isAuthenticated && !isLoading && !isAuthTransitioning) {
+  if (shouldShowLanding) {
     return (
       <>
         <LandingPage
-          onLogin={() => { setAuthMode('signin'); setShowAuthModal(true); }}
-          onGetStarted={() => { setAuthMode('signup'); setShowAuthModal(true); }}
-          onSubscribe={() => { setAuthMode('subscribe'); setShowAuthModal(true); }}
+          onLogin={() => {
+            if (isSupabaseEnabled) {
+              setAuthMode('signin');
+              setShowAuthModal(true);
+              return;
+            }
+            setShowLocalLanding(false);
+            setView('list');
+          }}
+          onGetStarted={() => {
+            if (isSupabaseEnabled) {
+              setAuthMode('signup');
+              setShowAuthModal(true);
+              return;
+            }
+            setShowLocalLanding(false);
+            setView('list');
+          }}
+          onSubscribe={() => {
+            if (isSupabaseEnabled) {
+              setAuthMode('subscribe');
+              setShowAuthModal(true);
+              return;
+            }
+            setShowLocalLanding(false);
+            setView('list');
+          }}
           onShowAbout={() => setShowAboutPage(true)}
           onShowTerms={() => setShowTermsPage(true)}
           onShowPrivacy={() => setShowPrivacyPage(true)}
@@ -660,7 +689,7 @@ function App() {
           onShowBlog={() => setShowBlogPage(true)}
         />
         <AuthModal
-          isOpen={showAuthModal}
+          isOpen={isSupabaseEnabled && showAuthModal}
           onClose={() => setShowAuthModal(false)}
           initialMode={authMode}
           onSuccess={() => {
@@ -712,6 +741,7 @@ function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenAuth={() => setShowAuthModal(true)}
+        authEnabled={isSupabaseEnabled}
         isAuthenticated={!!user}
         user={user}
         userProfile={profile}

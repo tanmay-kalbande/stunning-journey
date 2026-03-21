@@ -18,6 +18,7 @@ interface TopHeaderProps {
     onToggleTheme: () => void;
     onOpenAuth: () => void;
     isAuthenticated: boolean;
+    authEnabled?: boolean;
     user: SupabaseUser | null;
     userProfile: any | null;
     onSignOut: () => void;
@@ -38,6 +39,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     onToggleTheme,
     onOpenAuth,
     isAuthenticated,
+    authEnabled = true,
     user,
     userProfile,
     onSignOut,
@@ -259,7 +261,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                                     </>
                                 )}
                             </div>
-                        ) : (
+                        ) : authEnabled ? (
                             <button
                                 onClick={onOpenAuth}
                                 className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold shadow-lg hover:shadow-orange-500/20 transition-all"
@@ -267,6 +269,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                                 <User size={18} />
                                 <span>Sign In</span>
                             </button>
+                        ) : (
+                            <div
+                                className={`px-4 py-2 rounded-lg text-sm font-semibold border ${
+                                    theme === 'light'
+                                        ? 'bg-white border-gray-200 text-gray-500'
+                                        : 'bg-white/5 border-white/10 text-gray-400'
+                                }`}
+                            >
+                                Local Preview
+                            </div>
                         )}
 
                     </div>

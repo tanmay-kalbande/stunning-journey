@@ -1222,8 +1222,8 @@ const HomeView = ({
           className="w-16 h-16 mx-auto mb-6"
         />
         <h1 className="text-4xl md:text-5xl font-bold text-[var(--color-text-primary)] tracking-tight leading-tight">
-          Your Private<br />
-          <span className="text-orange-500">Encyclopedia.</span>
+          Build Your Private<br />
+          <span className="text-orange-500">Learning Book.</span>
         </h1>
       </div>
 
@@ -1244,7 +1244,7 @@ const HomeView = ({
               handleCreateRoadmap(formData);
             }
           }}
-          placeholder="What do you want to learn?"
+          placeholder="Describe the book you want to create"
           className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] text-base resize-none"
           rows={1}
           style={{ minHeight: '24px', maxHeight: '200px' }}
@@ -1258,7 +1258,7 @@ const HomeView = ({
           }}
           disabled={!formData.goal.trim() || isEnhancing || !hasApiKey}
           className="grok-input-icon shrink-0 flex items-center gap-1.5 text-sm"
-          title="Enhance your idea with AI & configure options"
+          title="Refine your prompt with AI and open guided options"
         >
           {isEnhancing ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -1277,7 +1277,7 @@ const HomeView = ({
           className="grok-chip"
         >
           <Settings size={16} />
-          Auto
+          Guided
           <ChevronDown size={12} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
         </button>
 
@@ -1450,7 +1450,7 @@ const HomeView = ({
             </button>
             {!hasApiKey && (
               <p className="text-center text-xs text-orange-400 mt-2">
-                * You need an API Key to generate. Check Settings.
+                * Enable the Agni Stack proxy in setup before generating.
               </p>
             )}
           </div>
@@ -1459,7 +1459,7 @@ const HomeView = ({
 
       {/* Footer hint */}
       <p className="text-center text-xs text-[var(--color-text-secondary)] mt-8 opacity-60">
-        Press Enter to generate • Bring your own API key
+        Press Enter to generate • Secure GLM proxy required
       </p>
     </div>
   </div>
@@ -1815,9 +1815,9 @@ export function BookView({
     if (!hasApiKey) {
       showAlertDialog({
         type: 'warning',
-        title: 'API Key Required',
-        message: 'Please configure an API key in Settings first.',
-        confirmText: 'Open Settings',
+        title: 'Setup Required',
+        message: 'Enable the Agni Stack proxy in setup before generating books.',
+        confirmText: 'Open Setup',
         onConfirm: onOpenSettings
       });
       return;
@@ -1995,9 +1995,9 @@ export function BookView({
       if (!hasApiKey) {
         showAlertDialog({
           type: 'warning',
-          title: 'API Key Required',
-          message: 'Please configure an API key in Settings to use the AI refiner.',
-          confirmText: 'Open Settings',
+          title: 'Setup Required',
+          message: 'Enable the Agni Stack proxy in setup to use the AI refiner.',
+          confirmText: 'Open Setup',
           onConfirm: onOpenSettings
         });
         return;
@@ -2057,9 +2057,9 @@ export function BookView({
       if (!hasApiKey) {
         showAlertDialog({
           type: 'warning',
-          title: 'API Key Required',
-          message: 'Please configure an API key in Settings to use the AI refiner.',
-          confirmText: 'Open Settings',
+          title: 'Setup Required',
+          message: 'Enable the Agni Stack proxy in setup to use the AI refiner.',
+          confirmText: 'Open Setup',
           onConfirm: onOpenSettings
         });
         return;
