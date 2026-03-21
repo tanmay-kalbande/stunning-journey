@@ -1517,17 +1517,35 @@ const BookListGrid = ({
     return Book;
   };
 
+  const getCoverTone = (title: string) => {
+    const t = title.toLowerCase();
+    if (t.includes('finance') || t.includes('money') || t.includes('business')) return 'from-emerald-400/45 via-cyan-400/20 to-transparent';
+    if (t.includes('ai') || t.includes('code') || t.includes('tech')) return 'from-orange-400/45 via-amber-300/25 to-transparent';
+    if (t.includes('health') || t.includes('life')) return 'from-rose-400/40 via-orange-300/20 to-transparent';
+    return 'from-blue-400/35 via-violet-300/20 to-transparent';
+  };
+
+  const getStatusBadge = (status: BookProject['status']) =>
+    ({
+      planning: 'Draft',
+      generating_roadmap: 'Roadmap',
+      roadmap_completed: 'Ready',
+      generating_content: 'Writing',
+      assembling: 'Assembling',
+      completed: 'Completed',
+      error: 'Needs Fix',
+    }[status] || 'Unknown');
+
   return (
     <div className="h-screen flex flex-col" style={{ background: 'var(--color-bg)', fontFamily: 'Rubik, sans-serif' }}>
-      {/* Fixed Header */}
-      <div className="flex-shrink-0 w-full sticky top-0 z-40 bg-[var(--color-bg)] pb-6 pt-6 px-8 lg:px-12 transition-colors duration-300">
+      <div className="flex-shrink-0 w-full sticky top-0 z-40 bg-[var(--color-bg)]/92 pb-6 pt-6 px-8 lg:px-12 backdrop-blur-xl transition-colors duration-300">
         <div className="flex items-center justify-between">
           <div>
-            {/* Title moved to TopHeader */}
-            <p className="text-gray-500 text-sm">{books.length} {books.length === 1 ? 'project' : 'projects'}</p>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.26em] text-orange-200/70">Library</p>
+            <h2 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Your Bookshelf</h2>
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{books.length} {books.length === 1 ? 'project' : 'projects'} in your workspace</p>
           </div>
           <div className="flex items-center gap-4">
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
@@ -1535,17 +1553,16 @@ const BookListGrid = ({
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                className="w-48 bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-full pl-10 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 dark:focus:border-white/20 focus:w-64 transition-all"
+                className="w-48 rounded-full border border-gray-200 bg-gray-100 pl-10 pr-4 py-2 text-sm text-gray-900 placeholder-gray-500 transition-all focus:w-64 focus:border-orange-500/40 focus:outline-none dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:border-orange-400/40"
               />
             </div>
-            <button onClick={() => setShowListInMain(false)} className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 rounded-full transition-all">
+            <button onClick={() => setShowListInMain(false)} className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition-all hover:border-gray-300 hover:text-gray-900 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-white">
               <ArrowLeft className="w-4 h-4 inline mr-2" /> Back
             </button>
           </div>
         </div>
       </div>
 
-      {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full max-w-[1400px] mx-auto px-8 lg:px-12 pb-10">
           {filteredBooks.length === 0 ? (
@@ -1575,6 +1592,8 @@ const BookListGrid = ({
               {filteredBooks.map((book) => {
                 const completedModules = book.modules.filter((m) => m.status === 'completed').length;
                 const totalModules = book.modules.length;
+                const wordCount = book.modules.reduce((acc, m) => acc + (m.wordCount || 0), 0) || book.totalWords || 0;
+                const Icon = getBookIcon(book.title);
 
                 return (
                   <div
@@ -1582,58 +1601,57 @@ const BookListGrid = ({
                     onMouseEnter={() => setHoveredBookId(book.id)}
                     onMouseLeave={() => setHoveredBookId(null)}
                     onClick={() => onSelectBook(book.id)}
-                    className="group relative bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-white/5 p-5 transition-all duration-200 cursor-pointer hover:border-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/5 shadow-sm"
+                    className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-gray-200 bg-white p-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/20 hover:shadow-[0_18px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#0b0b0b] dark:hover:border-orange-400/20 dark:hover:shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
                   >
-                    {/* Delete button - appears on hover */}
+                    <div className={`relative h-40 overflow-hidden border-b border-gray-200 bg-gradient-to-br ${getCoverTone(book.title)} dark:border-white/10`}>
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_35%),linear-gradient(180deg,rgba(8,8,8,0.02),rgba(8,8,8,0.72))]" />
+                      <div className="absolute right-4 top-4 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 backdrop-blur-md">
+                        {getStatusBadge(book.status)}
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-5">
+                        <div className="mb-3 inline-flex rounded-full border border-white/15 bg-white/10 p-2 text-white/85 backdrop-blur-md">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <h3 className="line-clamp-2 text-xl font-black leading-tight text-white" style={{ fontFamily: 'Rubik, sans-serif' }}>
+                          {book.title}
+                        </h3>
+                      </div>
+                    </div>
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onDeleteBook(book.id);
                       }}
-                      className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute right-3 top-44 rounded-xl p-2 text-gray-400 opacity-0 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
                     >
                       <Trash2 size={14} />
                     </button>
 
-                    {/* Book icon */}
-                    {(() => {
-                      const Icon = getBookIcon(book.title);
-                      return (
-                        <div className="p-2 rounded-lg bg-gray-100 dark:bg-white/5 w-fit mb-3">
-                          <Icon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                        </div>
-                      );
-                    })()}
-
-                    {/* Title */}
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4 line-clamp-2 leading-snug" style={{ fontFamily: 'Rubik, sans-serif' }}>
-                      {book.title}
-                    </h3>
-
-                    {/* Stats - Clean chips */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
-                        <FileText size={10} />
-                        {totalModules} modules
-                      </span>
-                      {(() => {
-                        const wordCount = book.modules.reduce((acc, m) => acc + (m.wordCount || 0), 0) || book.totalWords || 0;
-                        if (wordCount === 0) return null;
-                        return (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                    <div className="p-5">
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
+                          <FileText size={10} />
+                          {totalModules} modules
+                        </span>
+                        {wordCount > 0 && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
                             <Sparkles size={10} />
                             {wordCount.toLocaleString()} words
                           </span>
-                        );
-                      })()}
-                    </div>
+                        )}
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/10 px-2.5 py-1 text-[10px] font-medium text-orange-500">
+                          <Bookmark size={10} />
+                          {completedModules}/{Math.max(totalModules, 1)} done
+                        </span>
+                      </div>
 
-                    {/* Footer */}
-                    <div className="flex items-center justify-between text-[10px] font-medium text-gray-400 dark:text-gray-500">
-                      <span>{new Date(book.updatedAt).toLocaleDateString()}</span>
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500 dark:text-gray-400">
-                        Open →
-                      </span>
+                      <div className="flex items-center justify-between text-[10px] font-medium text-gray-400 dark:text-gray-500">
+                        <span>{new Date(book.updatedAt).toLocaleDateString()}</span>
+                        <span className="text-orange-500 opacity-0 transition-opacity group-hover:opacity-100 dark:text-orange-300">
+                          Open ->
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -1661,9 +1679,9 @@ const DetailTabButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-1 py-3 text-sm font-semibold transition-all duration-200 border-b-2 ${isActive
-      ? 'border-[var(--color-text-primary)] text-[var(--color-text-primary)]'
-      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+    className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${isActive
+      ? 'border-orange-500/30 bg-orange-500/10 text-[var(--color-text-primary)]'
+      : 'border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
       }`}
   >
     <Icon className="w-4 h-4" />
@@ -2329,7 +2347,7 @@ export function BookView({
 
     return (
       <div className="min-h-[calc(100vh-48px)]" style={{ background: 'var(--color-bg)', fontFamily: 'Rubik, sans-serif' }}>
-        <div className="w-full max-w-3xl mx-auto px-6 py-10">
+        <div className="w-full max-w-5xl mx-auto px-6 py-10">
           <div className="mb-8">
             <button
               onClick={() => {
@@ -2337,23 +2355,45 @@ export function BookView({
                 onSelectBook(null);
                 setShowListInMain(true);
               }}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors mb-5"
+              className="mb-5 flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to My Books
             </button>
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-1.5">{currentBook.title}</h1>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 text-sm font-medium text-gray-500 dark:text-gray-400">
-                {getStatusIcon(currentBook.status)}
-                {getStatusText(currentBook.status)}
+            <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-card)] shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
+              <div className="relative overflow-hidden border-b border-[var(--color-border)] bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.12),transparent_35%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-8">
+                <div className="absolute right-6 top-6 hidden h-16 w-16 rounded-full border border-white/10 bg-white/5 backdrop-blur-md md:block" />
+                <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.26em] text-orange-200/70">Book Workspace</p>
+                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                  <div className="max-w-3xl">
+                    <h1 className="mb-2 text-3xl font-bold tracking-tight text-[var(--color-text-primary)] md:text-5xl">{currentBook.title}</h1>
+                    <p className="max-w-2xl text-sm leading-7 text-[var(--color-text-secondary)] md:text-base">
+                      {currentBook.goal}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 md:min-w-[280px]">
+                    <div className="rounded-2xl border border-[var(--color-border)] bg-black/20 p-4">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Status</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
+                        {getStatusIcon(currentBook.status)}
+                        {getStatusText(currentBook.status)}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-[var(--color-border)] bg-black/20 p-4">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Progress</p>
+                      <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">
+                        {completedModules.length}/{Math.max(currentBook.roadmap?.modules.length || currentBook.modules.length, 1)} modules
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           {currentBook.status === 'completed' && (
-            <div className="border-b border-gray-200 dark:border-white/10 mb-8">
-              <div className="flex items-center gap-6">
+            <div className="mb-8">
+              <div className="flex items-center gap-3">
                 <DetailTabButton
                   label="Overview"
                   Icon={ListChecks}
@@ -2424,7 +2464,7 @@ export function BookView({
                   !isGenerating &&
                   !isPaused &&
                   generationStatus?.status !== 'waiting_retry' && (
-                    <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg p-7">
+                    <div className="rounded-[28px] border border-[var(--color-border)] bg-[var(--color-card)] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.22)]">
                       <div className="flex items-center gap-4 mb-5">
                         <div className="w-10 h-10 flex items-center justify-center bg-gray-500/10 rounded-lg">
                           <Play className="w-5 h-5 text-gray-400" />
