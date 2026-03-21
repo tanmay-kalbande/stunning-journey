@@ -1,5 +1,10 @@
 // ============================================================================
 // FILE: src/services/bookService.ts
+// FIXES:
+//   1. validateSettings() — auto-correct provider to zhipu in proxy mode
+//      instead of pushing an error that silently blocks generation.
+//   2. generateWithAI() proxy block — added 90-second AbortSignal timeout
+//      so isEnhancing / isGenerating can NEVER get permanently stuck.
 // ============================================================================
 
 import { BookProject, BookRoadmap, BookModule, RoadmapModule, BookSession } from '../types/book';
@@ -253,6 +258,11 @@ User Input: "${userInput}"`;
     try { return localStorage.getItem(`pause_flag_${bookId}`) === 'true'; } catch { return false; }
   }
 
+  // ============================================================================
+  // FIX 1: validateSettings — auto-correct provider in proxy mode
+  // Previously this pushed an error when a stale non-Zhipu provider was saved,
+  // causing generation/enhance to silently fail with a misleading error.
+  // ============================================================================
   validateSettings(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
     const useProxy = import.meta.env.VITE_USE_PROXY === 'true';
@@ -261,8 +271,10 @@ User Input: "${userInput}"`;
     if (!this.settings.selectedModel) errors.push('No model selected');
 
     if (useProxy) {
+      // Auto-correct stale localStorage settings instead of erroring.
       if (this.settings.selectedProvider !== ZHIPU_PROVIDER) {
-        errors.push('Only the Zhipu GLM stack is supported in proxy mode');
+        this.settings.selectedProvider = ZHIPU_PROVIDER;
+        this.settings.selectedModel = DEFAULT_ZHIPU_MODEL;
       }
     } else {
       const apiKey = this.getApiKeyForProvider(this.settings.selectedProvider);
@@ -362,6 +374,9 @@ User Input: "${userInput}"`;
 
   // ============================================================================
   // CORE AI GENERATION
+  // FIX 2: Added 90-second timeout to proxy path — prevents isEnhancing /
+  //         isGenerating from getting permanently stuck if the Edge Function
+  //         hangs, returns no data, or the network silently drops the request.
   // ============================================================================
 
   private async generateWithAI(
@@ -382,18 +397,42 @@ User Input: "${userInput}"`;
     // ── Proxy path ──────────────────────────────────────────────────────────
     const useProxy = import.meta.env.VITE_USE_PROXY === 'true';
     if (useProxy) {
+      // 90-second hard timeout — the Promise.race ensures isEnhancing / isGenerating
+      // can never get permanently stuck even if the Edge Function never responds.
+      let proxyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        proxyTimeoutId = setTimeout(() => {
+          abortController.abort();
+          reject(new Error('Request timed out after 90 seconds. Please try again.'));
+        }, 90_000);
+      });
+
       try {
         const { generateViaProxy } = await import('./proxyService');
         const resolvedTask = (taskType as import('./proxyService').TaskType) || 'module';
-        return await generateViaProxy(
-          prompt, resolvedTask, this.settings.selectedModel,
-          abortController.signal, onChunk, bookId
-        );
+
+        const result = await Promise.race([
+          generateViaProxy(
+            prompt,
+            resolvedTask,
+            this.settings.selectedModel,
+            abortController.signal,
+            onChunk,
+            bookId,
+          ),
+          timeoutPromise,
+        ]);
+
+        return result;
       } catch (proxyError) {
         const msg = proxyError instanceof Error ? proxyError.message : String(proxyError);
-        if (msg.startsWith('RATE_LIMIT:') || msg.includes('not authenticated')) throw proxyError;
+        // Auth and rate-limit errors must surface directly — do not wrap them
+        if (msg.startsWith('RATE_LIMIT:') || msg.includes('not authenticated')) {
+          throw proxyError;
+        }
         throw new Error(`Proxy unavailable: ${msg}`);
       } finally {
+        if (proxyTimeoutId !== null) clearTimeout(proxyTimeoutId);
         this.activeRequests.delete(requestId);
       }
     }
@@ -414,10 +453,9 @@ User Input: "${userInput}"`;
   }
 
   // ============================================================================
-  // PROVIDER METHODS (collapsed from 7 near-identical implementations into 3)
+  // PROVIDER METHODS
   // ============================================================================
 
-  /** Single generic SSE streaming method — works for every supported provider. */
   private async generateWithProvider(
     prompt: string,
     signal?: AbortSignal,
@@ -460,7 +498,6 @@ User Input: "${userInput}"`;
     throw new Error(`${this.settings.selectedProvider} API failed after retries`);
   }
 
-  /** Build the fetch arguments for the currently-selected provider. */
   private buildProviderRequest(prompt: string): {
     url: string;
     headers: Record<string, string>;
@@ -482,7 +519,6 @@ User Input: "${userInput}"`;
     const url = ENDPOINTS[this.settings.selectedProvider];
     if (!url) throw new Error(`Unsupported provider: ${this.settings.selectedProvider}`);
 
-    // Google uses a different request schema
     if (this.settings.selectedProvider === 'google') {
       return {
         url,
@@ -494,7 +530,6 @@ User Input: "${userInput}"`;
       };
     }
 
-    // Cohere uses a slightly different request schema
     if (this.settings.selectedProvider === 'cohere') {
       return {
         url,
@@ -511,7 +546,6 @@ User Input: "${userInput}"`;
       };
     }
 
-    // All other providers are OpenAI-compatible
     const extraHeaders: Record<string, string> = {};
     if (this.settings.selectedProvider === 'openrouter') {
       extraHeaders['HTTP-Referer'] = window.location.origin;
@@ -535,7 +569,6 @@ User Input: "${userInput}"`;
     };
   }
 
-  /** Read an SSE stream and return the full accumulated text. */
   private async readSSEStream(
     body: ReadableStream<Uint8Array>,
     onChunk?: (chunk: string) => void
@@ -560,11 +593,8 @@ User Input: "${userInput}"`;
         try {
           const data = JSON.parse(trimmed.slice(6));
 
-          // OpenAI-compatible (Mistral, Groq, Cerebras, xAI, OpenRouter)
-          const oaiText = data?.choices?.[0]?.delta?.content || '';
-          // Google Gemini
+          const oaiText    = data?.choices?.[0]?.delta?.content || '';
           const googleText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          // Cohere v2
           const cohereText = data?.type === 'content-delta'
             ? (data?.delta?.message?.content?.text || '')
             : '';
@@ -750,7 +780,6 @@ Return ONLY valid JSON:
       if (error instanceof Error && error.message === 'GENERATION_PAUSED') throw error;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      // Auto-retry for network/rate-limit errors
       if (attemptNumber < this.MAX_MODULE_RETRIES && this.shouldRetryAutomatically(error)) {
         const delay = this.calculateRetryDelay(attemptNumber, this.isRateLimitError(error));
         this.updateGenerationStatus(book.id, {
@@ -761,7 +790,6 @@ Return ONLY valid JSON:
         return this.generateModuleContentWithRetry(book, roadmapModule, session, attemptNumber + 1);
       }
 
-      // Ask user for decision on other errors
       if (attemptNumber < this.MAX_MODULE_RETRIES && this.shouldRetry(error, attemptNumber)) {
         const decision = await this.waitForUserRetryDecision(book.id, roadmapModule.title, errorMessage, attemptNumber);
         if (decision === 'retry') {
@@ -887,7 +915,6 @@ ${session.preferences?.includePracticalExercises ? '### Practice Exercises' : ''
           this.saveCheckpoint(book.id, Array.from(completedIds), Array.from(failedIds), i, moduleRetryCount, totalWords);
           this.updateProgress(book.id, { modules: [...completedModules], progress: Math.min(85, 15 + (completedModules.length / book.roadmap.modules.length) * 70) });
         } else {
-          // Module failed permanently — stop generation
           failedIds.add(roadmapModule.id);
           completedModules.push(newModule);
           this.saveCheckpoint(book.id, Array.from(completedIds), Array.from(failedIds), i, moduleRetryCount,
@@ -922,7 +949,6 @@ ${session.preferences?.includePracticalExercises ? '### Practice Exercises' : ''
       }
     }
 
-    // All done
     this.clearCheckpoint(book.id);
     try { localStorage.removeItem(`pause_flag_${book.id}`); } catch {}
 
