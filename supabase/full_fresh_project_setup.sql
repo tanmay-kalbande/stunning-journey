@@ -23,6 +23,7 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.update_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 DROP FUNCTION IF EXISTS public.increment_books_created(uuid) CASCADE;
+DROP FUNCTION IF EXISTS public.increment_rate_limit(uuid, date, integer, boolean) CASCADE;
 DROP FUNCTION IF EXISTS public.record_book_completed(text, text, text, text, integer, integer) CASCADE;
 DROP FUNCTION IF EXISTS public.subscribe_newsletter(text) CASCADE;
 
@@ -169,6 +170,40 @@ BEGIN
   SET books_created = books_created + 1,
       updated_at = NOW()
   WHERE id = p_user_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.increment_rate_limit(
+  p_user_id UUID,
+  p_date DATE,
+  p_tokens INTEGER,
+  p_new_book BOOLEAN
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO public.rate_limits (
+    user_id,
+    date,
+    requests_made,
+    tokens_used,
+    books_started
+  )
+  VALUES (
+    p_user_id,
+    p_date,
+    1,
+    p_tokens,
+    CASE WHEN p_new_book THEN 1 ELSE 0 END
+  )
+  ON CONFLICT (user_id, date)
+  DO UPDATE SET
+    requests_made = public.rate_limits.requests_made + 1,
+    tokens_used   = public.rate_limits.tokens_used + EXCLUDED.tokens_used,
+    books_started = public.rate_limits.books_started + EXCLUDED.books_started,
+    updated_at    = NOW();
 END;
 $$;
 
@@ -323,6 +358,7 @@ GRANT SELECT ON public.ai_usage TO authenticated;
 GRANT SELECT ON public.rate_limits TO authenticated;
 
 GRANT EXECUTE ON FUNCTION public.increment_books_created(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_rate_limit(uuid, date, integer, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.record_book_completed(text, text, text, text, integer, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.subscribe_newsletter(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.subscribe_newsletter(text) TO authenticated;

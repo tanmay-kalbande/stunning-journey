@@ -26,6 +26,8 @@ const DAILY_LIMITS = {
   books: 5,
 };
 
+const GLOBAL_DAILY_BUDGET_USD = 20;
+
 const ZHIPU_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
 const CORS_HEADERS = {
@@ -73,6 +75,22 @@ export default async function handler(req: Request) {
     return errorResponse(401, 'Could not identify user from token.');
   }
 
+  const today = new Date().toISOString().split('T')[0];
+
+  const spendRes = await supabaseRequest(
+    `${env.supabaseUrl}/rest/v1/ai_usage?created_at=gte.${today}T00:00:00Z&select=cost_usd_cents`,
+    'GET',
+    null,
+    env.serviceRoleKey
+  );
+  const spendData = spendRes.ok ? await spendRes.json() : [];
+  const todaySpend =
+    spendData.reduce((sum: number, row: { cost_usd_cents?: number }) => sum + (row.cost_usd_cents || 0), 0) / 100;
+
+  if (todaySpend >= GLOBAL_DAILY_BUDGET_USD) {
+    return errorResponse(503, 'Platform is at capacity for today. Try again tomorrow.');
+  }
+
   let body: {
     messages: Array<{ role: string; content: string }>;
     task_type?: TaskType;
@@ -94,7 +112,6 @@ export default async function handler(req: Request) {
   const taskType: TaskType = body.task_type || 'module';
   const bookId = body.book_id || null;
   const resolvedModel = resolveModel(taskType, body.model);
-  const today = new Date().toISOString().split('T')[0];
 
   const rateLimitRes = await supabaseRequest(
     `${env.supabaseUrl}/rest/v1/rate_limits?user_id=eq.${userId}&date=eq.${today}&select=id,requests_made,tokens_used,books_started`,
@@ -125,6 +142,7 @@ export default async function handler(req: Request) {
     stream: true,
     max_tokens: body.max_tokens || (taskType === 'module' ? 8192 : 4096),
     temperature: 0.7,
+    stream_options: { include_usage: true },
   };
 
   let zhipuRes: Response;
@@ -231,7 +249,7 @@ export default async function handler(req: Request) {
           errorMessage: null,
           durationMs,
         }),
-        upsertDailyRateLimit(env, userId, today, totalTokens, isNewBook),
+        incrementRateLimit(env, userId, today, totalTokens, isNewBook),
       ]);
     },
   });
@@ -315,42 +333,21 @@ async function logUsage(
   );
 }
 
-async function upsertDailyRateLimit(
+async function incrementRateLimit(
   env: { supabaseUrl: string; serviceRoleKey: string },
   userId: string,
   date: string,
   tokens: number,
   newBook: boolean
 ) {
-  const lookupUrl = `${env.supabaseUrl}/rest/v1/rate_limits?user_id=eq.${userId}&date=eq.${date}&select=id,requests_made,tokens_used,books_started`;
-  const existingRes = await supabaseRequest(lookupUrl, 'GET', null, env.serviceRoleKey);
-  const existingRows = existingRes.ok ? await existingRes.json() : [];
-  const existing = existingRows[0];
-
-  if (existing?.id) {
-    await supabaseRequest(
-      `${env.supabaseUrl}/rest/v1/rate_limits?id=eq.${existing.id}`,
-      'PATCH',
-      {
-        requests_made: (existing.requests_made || 0) + 1,
-        tokens_used: (existing.tokens_used || 0) + tokens,
-        books_started: (existing.books_started || 0) + (newBook ? 1 : 0),
-        updated_at: new Date().toISOString(),
-      },
-      env.serviceRoleKey
-    );
-    return;
-  }
-
   await supabaseRequest(
-    `${env.supabaseUrl}/rest/v1/rate_limits`,
+    `${env.supabaseUrl}/rest/v1/rpc/increment_rate_limit`,
     'POST',
     {
-      user_id: userId,
-      date,
-      requests_made: 1,
-      tokens_used: tokens,
-      books_started: newBook ? 1 : 0,
+      p_user_id: userId,
+      p_date: date,
+      p_tokens: tokens,
+      p_new_book: newBook,
     },
     env.serviceRoleKey
   );
