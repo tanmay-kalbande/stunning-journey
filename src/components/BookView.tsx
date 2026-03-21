@@ -1649,7 +1649,7 @@ const BookListGrid = ({
                       <div className="flex items-center justify-between text-[10px] font-medium text-gray-400 dark:text-gray-500">
                         <span>{new Date(book.updatedAt).toLocaleDateString()}</span>
                         <span className="text-orange-500 opacity-0 transition-opacity group-hover:opacity-100 dark:text-orange-300">
-                          Open ->
+                          Open {'->'}
                         </span>
                       </div>
                     </div>
