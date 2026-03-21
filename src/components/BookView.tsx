@@ -990,7 +990,7 @@ const ReadingMode: React.FC<ReadingModeProps> = ({
   return (
     <>
       <div
-        className={`reading-container theme-${settings.theme} rounded-lg border border-[var(--color-border)] transition-colors duration-300`}
+        className={`reading-container theme-${settings.theme} overflow-hidden rounded-[28px] border border-white/[0.08] bg-white/[0.03] shadow-[0_20px_80px_rgba(0,0,0,0.22)] transition-colors duration-300`}
         style={readingAreaStyles}
       >
         <div
@@ -1539,26 +1539,43 @@ const BookListGrid = ({
   return (
     <div className="h-screen flex flex-col" style={{ background: 'var(--color-bg)', fontFamily: 'Rubik, sans-serif' }}>
       <div className="flex-shrink-0 w-full sticky top-0 z-40 bg-[var(--color-bg)]/92 pb-6 pt-6 px-8 lg:px-12 backdrop-blur-xl transition-colors duration-300">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.26em] text-orange-200/70">Library</p>
             <h2 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Your Bookshelf</h2>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{books.length} {books.length === 1 ? 'project' : 'projects'} in your workspace</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                className="w-48 rounded-full border border-gray-200 bg-gray-100 pl-10 pr-4 py-2 text-sm text-gray-900 placeholder-gray-500 transition-all focus:w-64 focus:border-orange-500/40 focus:outline-none dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:border-orange-400/40"
-              />
+          <div className="flex flex-col gap-3 lg:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              {(['all', 'in-progress', 'completed', 'error'] as const).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setStatusFilter(filter)}
+                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-all ${
+                    statusFilter === filter
+                      ? 'border-orange-500/20 bg-orange-500/[0.08] text-orange-200'
+                      : 'border-white/[0.08] bg-white/[0.025] text-[var(--color-text-secondary)] hover:border-white/[0.16] hover:text-[var(--color-text-primary)]'
+                  }`}
+                >
+                  {filter === 'all' ? 'All' : filter.replace('-', ' ')}
+                </button>
+              ))}
             </div>
-            <button onClick={() => setShowListInMain(false)} className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition-all hover:border-gray-300 hover:text-gray-900 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-white">
-              <ArrowLeft className="w-4 h-4 inline mr-2" /> Back
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  className="w-48 rounded-full border border-gray-200 bg-gray-100 pl-10 pr-4 py-2 text-sm text-gray-900 placeholder-gray-500 transition-all focus:w-64 focus:border-orange-500/40 focus:outline-none dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:border-orange-400/40"
+                />
+              </div>
+              <button onClick={() => setShowListInMain(false)} className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition-all hover:border-gray-300 hover:text-gray-900 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-white">
+                <ArrowLeft className="w-4 h-4 inline mr-2" /> Back
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1588,12 +1605,14 @@ const BookListGrid = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredBooks.map((book) => {
                 const completedModules = book.modules.filter((m) => m.status === 'completed').length;
                 const totalModules = book.modules.length;
                 const wordCount = book.modules.reduce((acc, m) => acc + (m.wordCount || 0), 0) || book.totalWords || 0;
                 const Icon = getBookIcon(book.title);
+                const completionRatio = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+                const readMinutes = Math.max(8, Math.round(wordCount / 220) || 8);
 
                 return (
                   <div
@@ -1601,54 +1620,75 @@ const BookListGrid = ({
                     onMouseEnter={() => setHoveredBookId(book.id)}
                     onMouseLeave={() => setHoveredBookId(null)}
                     onClick={() => onSelectBook(book.id)}
-                    className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-gray-200 bg-white p-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/20 hover:shadow-[0_18px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#0b0b0b] dark:hover:border-orange-400/20 dark:hover:shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+                    className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-gray-200/80 bg-white/96 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500/20 dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.04]"
                   >
-                    <div className={`relative h-40 overflow-hidden border-b border-gray-200 bg-gradient-to-br ${getCoverTone(book.title)} dark:border-white/10`}>
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_35%),linear-gradient(180deg,rgba(8,8,8,0.02),rgba(8,8,8,0.72))]" />
-                      <div className="absolute right-4 top-4 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 backdrop-blur-md">
-                        {getStatusBadge(book.status)}
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-5">
-                        <div className="mb-3 inline-flex rounded-full border border-white/15 bg-white/10 p-2 text-white/85 backdrop-blur-md">
-                          <Icon className="h-4 w-4" />
+                    <div className="flex items-start justify-between gap-4">
+                      <div className={`relative h-32 w-[96px] shrink-0 overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-br ${getCoverTone(book.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]`}>
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_38%),linear-gradient(180deg,rgba(8,8,8,0.02),rgba(8,8,8,0.44))]" />
+                        <div className="absolute inset-x-0 bottom-0 p-3">
+                          <div className="mb-2 inline-flex rounded-full border border-white/15 bg-black/20 p-1.5 text-white/90 backdrop-blur-md">
+                            <Icon className="h-3.5 w-3.5" />
+                          </div>
+                          <p className="line-clamp-3 text-xs font-semibold uppercase tracking-[0.12em] text-white/90">
+                            {book.title}
+                          </p>
                         </div>
-                        <h3 className="line-clamp-2 text-xl font-black leading-tight text-white" style={{ fontFamily: 'Rubik, sans-serif' }}>
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <span className="inline-flex items-center rounded-full border border-orange-500/15 bg-orange-500/[0.07] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-300">
+                            {getStatusBadge(book.status)}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteBook(book.id);
+                            }}
+                            className="rounded-full p-2 text-gray-400 opacity-0 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+
+                        <h3 className="line-clamp-2 text-[22px] font-semibold leading-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'Rubik, sans-serif' }}>
                           {book.title}
                         </h3>
-                      </div>
-                    </div>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+                          {book.goal || 'Structured learning project ready for generation and export.'}
+                        </p>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteBook(book.id);
-                      }}
-                      className="absolute right-3 top-44 rounded-xl p-2 text-gray-400 opacity-0 transition-all hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-
-                    <div className="p-5">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
-                          <FileText size={10} />
-                          {totalModules} modules
-                        </span>
-                        {wordCount > 0 && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
+                        <div className="mt-5 flex flex-wrap gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
+                            <FileText size={10} />
+                            {totalModules} modules
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
                             <Sparkles size={10} />
                             {wordCount.toLocaleString()} words
                           </span>
-                        )}
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/10 px-2.5 py-1 text-[10px] font-medium text-orange-500">
-                          <Bookmark size={10} />
-                          {completedModules}/{Math.max(totalModules, 1)} done
-                        </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
+                            <Clock size={10} />
+                            {readMinutes} min read
+                          </span>
+                        </div>
                       </div>
+                    </div>
 
-                      <div className="flex items-center justify-between text-[10px] font-medium text-gray-400 dark:text-gray-500">
+                    <div className="mt-5 border-t border-white/[0.08] pt-4">
+                      <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
+                        <span>Progress</span>
+                        <span>{completionRatio}%</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300 transition-all"
+                          style={{ width: `${completionRatio}%` }}
+                        />
+                      </div>
+                      <div className="mt-4 flex items-center justify-between text-[11px] font-medium text-[var(--color-text-secondary)]">
                         <span>{new Date(book.updatedAt).toLocaleDateString()}</span>
-                        <span className="text-orange-500 opacity-0 transition-opacity group-hover:opacity-100 dark:text-orange-300">
+                        <span className="text-orange-400 transition-colors group-hover:text-orange-300">
                           Open {'->'}
                         </span>
                       </div>
@@ -1680,8 +1720,8 @@ const DetailTabButton = ({
   <button
     onClick={onClick}
     className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${isActive
-      ? 'border-orange-500/30 bg-orange-500/10 text-[var(--color-text-primary)]'
-      : 'border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+      ? 'border-orange-500/25 bg-orange-500/[0.08] text-[var(--color-text-primary)] shadow-[0_12px_32px_rgba(249,115,22,0.08)]'
+      : 'border-white/[0.08] bg-white/[0.025] text-[var(--color-text-secondary)] hover:border-white/[0.14] hover:text-[var(--color-text-primary)]'
       }`}
   >
     <Icon className="w-4 h-4" />
@@ -2337,6 +2377,398 @@ export function BookView({
   }
 
   if (view === 'detail' && currentBook) {
+    const areAllModulesDoneNew =
+      currentBook.roadmap &&
+      currentBook.modules.length === currentBook.roadmap.modules.length &&
+      currentBook.modules.every((m) => m.status === 'completed');
+    const failedModulesNew = currentBook.modules.filter((m) => m.status === 'error');
+    const completedModulesNew = currentBook.modules.filter((m) => m.status === 'completed');
+    const isPausedNew = generationStatus?.status === 'paused';
+    const totalModuleCount = Math.max(currentBook.roadmap?.modules.length || currentBook.modules.length, 1);
+    const totalWords =
+      currentBook.modules.reduce((sum, module) => sum + (module.wordCount || 0), 0) ||
+      currentBook.totalWords ||
+      (currentBook.finalBook ? currentBook.finalBook.trim().split(/\s+/).length : 0);
+    const estimatedReadTime = Math.max(10, Math.round(totalWords / 220) || 10);
+
+    return (
+      <div className="min-h-[calc(100vh-48px)]" style={{ background: 'var(--color-bg)', fontFamily: 'Rubik, sans-serif' }}>
+        <div className="w-full max-w-6xl mx-auto px-6 py-10">
+          <div className="mb-8">
+            <button
+              onClick={() => {
+                setView('list');
+                onSelectBook(null);
+                setShowListInMain(true);
+              }}
+              className="mb-5 flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to My Books
+            </button>
+
+            <div className="overflow-hidden rounded-[30px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
+              <div className="relative overflow-hidden border-b border-white/[0.08] bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.10),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-7 md:p-8">
+                <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.26em] text-orange-200/70">Book Workspace</p>
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_320px] lg:items-end">
+                  <div className="flex items-start gap-5">
+                    <div className={`relative hidden h-44 w-32 shrink-0 overflow-hidden rounded-[26px] border border-white/10 bg-gradient-to-br ${getCoverTone(currentBook.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] md:block`}>
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_35%),linear-gradient(180deg,rgba(8,8,8,0.04),rgba(8,8,8,0.45))]" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">Pustakam Injin</p>
+                        <h2 className="mt-2 line-clamp-4 text-xl font-semibold leading-tight text-white">
+                          {currentBook.title}
+                        </h2>
+                      </div>
+                    </div>
+
+                    <div className="max-w-3xl">
+                      <h1 className="mb-3 text-3xl font-bold tracking-tight text-[var(--color-text-primary)] md:text-[44px] md:leading-[0.98]">
+                        {currentBook.title}
+                      </h1>
+                      <p className="max-w-2xl text-sm leading-7 text-[var(--color-text-secondary)]">
+                        {currentBook.goal}
+                      </p>
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-secondary)]">
+                          <FileText className="h-3.5 w-3.5" />
+                          {totalModuleCount} modules
+                        </span>
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-secondary)]">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {totalWords.toLocaleString()} words
+                        </span>
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-secondary)]">
+                          <Clock className="h-3.5 w-3.5" />
+                          {estimatedReadTime} min read
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 lg:min-w-[320px]">
+                    <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-4">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Status</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
+                        {getStatusIcon(currentBook.status)}
+                        {getStatusText(currentBook.status)}
+                      </div>
+                    </div>
+                    <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-4">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Progress</p>
+                      <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">
+                        {completedModulesNew.length}/{totalModuleCount} modules
+                      </div>
+                    </div>
+                    <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-4">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Updated</p>
+                      <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">
+                        {new Date(currentBook.updatedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-4">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Mode</p>
+                      <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">
+                        {currentBook.generationMode === 'street' ? 'Street Mode' : 'Stellar Mode'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {currentBook.status === 'completed' && (
+            <div className="mb-8">
+              <div className="flex items-center gap-3">
+                <DetailTabButton label="Overview" Icon={ListChecks} isActive={detailTab === 'overview'} onClick={() => setDetailTab('overview')} />
+                <DetailTabButton label="Analytics" Icon={BarChart3} isActive={detailTab === 'analytics'} onClick={() => setDetailTab('analytics')} />
+                <DetailTabButton label="Read Book" Icon={BookText} isActive={detailTab === 'read'} onClick={() => setDetailTab('read')} />
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-6">
+            {detailTab === 'analytics' && currentBook.status === 'completed' ? (
+              <BookAnalytics book={currentBook} />
+            ) : detailTab === 'read' && currentBook.status === 'completed' ? (
+              <ReadingMode
+                content={currentBook.finalBook || ''}
+                isEditing={isEditing}
+                editedContent={editedContent}
+                onEdit={handleStartEditing}
+                onSave={handleSaveChanges}
+                onCancel={handleCancelEditing}
+                onContentChange={setEditedContent}
+                onGoBack={handleGoBackToLibrary}
+                theme={theme}
+                bookId={currentBook.id}
+                currentModuleIndex={0}
+              />
+            ) : (
+              <>
+                {(isGenerating || isPausedNew || generationStatus?.status === 'waiting_retry') &&
+                  generationStatus &&
+                  generationStats && (
+                    <EmbeddedProgressPanel
+                      generationStatus={generationStatus}
+                      stats={generationStats}
+                      onCancel={() => {
+                        showAlertDialog({
+                          type: 'confirm',
+                          title: 'Cancel Generation',
+                          message: 'Cancel generation? Progress will be saved.',
+                          confirmText: 'Yes, Cancel',
+                          cancelText: 'Keep Generating',
+                          onConfirm: () => bookService.cancelActiveRequests(currentBook.id)
+                        });
+                      }}
+                      onPause={handlePauseGeneration}
+                      onResume={handleResumeGeneration}
+                      onRetryDecision={onRetryDecision}
+                      availableModels={availableModels}
+                      bookTitle={currentBook.title}
+                    />
+                  )}
+
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_360px]">
+                  {currentBook.roadmap && (
+                    <div className="rounded-[30px] border border-white/[0.08] bg-white/[0.025] p-6 md:p-7">
+                      <div className="mb-6 flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-orange-200/70">Roadmap</p>
+                          <h3 className="mt-2 text-2xl font-semibold text-[var(--color-text-primary)]">Learning Flow</h3>
+                        </div>
+                        <div className="rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-secondary)]">
+                          {completedModulesNew.length}/{totalModuleCount} complete
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        {currentBook.roadmap.modules.map((module, index) => {
+                          const completedModule = currentBook.modules.find((m) => m.roadmapModuleId === module.id);
+                          const isActive = generationStatus?.currentModule?.id === module.id;
+                          return (
+                            <div
+                              key={module.id}
+                              className={`group flex items-start gap-4 rounded-[22px] border px-4 py-4 transition-all ${
+                                isActive
+                                  ? 'border-orange-500/25 bg-orange-500/[0.05]'
+                                  : completedModule?.status === 'completed'
+                                    ? 'border-emerald-500/20 bg-emerald-500/[0.05]'
+                                    : completedModule?.status === 'error'
+                                      ? 'border-red-500/20 bg-red-500/[0.04]'
+                                      : 'border-white/[0.08] bg-white/[0.015] hover:border-white/[0.14] hover:bg-white/[0.03]'
+                              }`}
+                            >
+                              <div
+                                className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-sm font-semibold ${
+                                  completedModule?.status === 'completed'
+                                    ? 'border-emerald-400/20 bg-emerald-400/15 text-emerald-200'
+                                    : completedModule?.status === 'error'
+                                      ? 'border-red-400/20 bg-red-400/15 text-red-200'
+                                      : isActive
+                                        ? 'border-orange-400/20 bg-orange-400/15 text-orange-100'
+                                        : 'border-white/[0.08] bg-white/[0.04] text-[var(--color-text-secondary)]'
+                                }`}
+                              >
+                                {completedModule?.status === 'completed' ? <Check size={15} /> : completedModule?.status === 'error' ? <X size={15} /> : isActive ? <Loader2 size={15} className="animate-spin" /> : String(index + 1).padStart(2, '0')}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="text-base font-semibold text-[var(--color-text-primary)]">
+                                    {module.title}
+                                  </h4>
+                                  {completedModule?.status === 'completed' && (
+                                    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
+                                      Done
+                                    </span>
+                                  )}
+                                  {isActive && (
+                                    <span className="rounded-full border border-orange-400/20 bg-orange-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-orange-100">
+                                      Writing
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-1 text-sm leading-6 text-[var(--color-text-secondary)]">{module.description || module.estimatedTime}</p>
+                              </div>
+                              <div className="hidden pt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--color-text-secondary)] md:block">
+                                {module.estimatedTime}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-6">
+                    {currentBook.status === 'roadmap_completed' &&
+                      !areAllModulesDoneNew &&
+                      !isGenerating &&
+                      !isPausedNew &&
+                      generationStatus?.status !== 'waiting_retry' && (
+                        <div className="rounded-[30px] border border-white/[0.08] bg-white/[0.025] p-6">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-orange-200/70">Next Step</p>
+                          <h3 className="mt-3 text-2xl font-semibold text-[var(--color-text-primary)]">Generate Chapters</h3>
+                          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+                            {completedModulesNew.length > 0
+                              ? `Resume from ${completedModulesNew.length} completed modules with saved progress.`
+                              : 'Start the writing pass and generate the full chapter set.'}
+                          </p>
+                          <div className="mt-5 rounded-[22px] border border-white/[0.08] bg-black/20 p-4">
+                            <p className="text-sm font-semibold text-[var(--color-text-primary)]">Recovery is built in</p>
+                            <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+                              Progress is saved automatically, failed sections can retry, and you can safely return later.
+                            </p>
+                          </div>
+                          <button onClick={handleStartGeneration} disabled={localIsGenerating} className="btn btn-primary mt-5 w-full py-2.5">
+                            {localIsGenerating ? <><Loader2 className="animate-spin" /> Generating...</> : <><Play className="w-4 h-4" />{completedModulesNew.length > 0 ? 'Resume Generation' : 'Generate All Modules'}</>}
+                          </button>
+                        </div>
+                      )}
+
+                    {areAllModulesDoneNew &&
+                      currentBook.status !== 'completed' &&
+                      !localIsGenerating &&
+                      !isGenerating &&
+                      !isPausedNew && (
+                        <div className="rounded-[30px] border border-emerald-500/20 bg-emerald-500/[0.05] p-6 space-y-5 animate-fade-in-up">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-200/70">Ready</p>
+                            <h3 className="mt-3 text-2xl font-semibold text-[var(--color-text-primary)]">Assemble Final Book</h3>
+                            <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+                              All chapters are complete. Build the final exportable book now.
+                            </p>
+                          </div>
+                          <button onClick={handleStartAssembly} className="btn btn-primary w-full py-2.5">
+                            <Box className="w-5 h-5" />
+                            Assemble Final Book
+                          </button>
+                        </div>
+                      )}
+
+                    {currentBook.status === 'assembling' && (
+                      <div className="rounded-[30px] border border-green-500/25 bg-white/[0.025] p-6 space-y-6 animate-assembling-glow">
+                        <div className="relative h-14 w-14">
+                          <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping"></div>
+                          <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10">
+                            <Box className="w-7 h-7 text-green-400" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-200/70">Assembly</p>
+                          <h3 className="mt-3 text-2xl font-semibold text-[var(--color-text-primary)]">Finalizing Your Book</h3>
+                          <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+                            Chapters are being stitched together and polished for export.
+                          </p>
+                        </div>
+                        <div className="w-full overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] h-2">
+                          <div className="h-full rounded-full bg-gradient-to-r from-green-500 via-emerald-400 to-green-500 animate-slide-in-out"></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentBook.status === 'completed' && detailTab === 'overview' && (
+                      <div className="rounded-[30px] border border-white/[0.08] bg-white/[0.025] p-6">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-orange-200/70">Exports</p>
+                        <h3 className="mt-3 text-2xl font-semibold text-[var(--color-text-primary)]">Download Your Book</h3>
+                        <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
+                          Export a polished PDF or take the markdown source for editing.
+                        </p>
+
+                        <div className="mt-5 space-y-3">
+                          <button
+                            onClick={handleDownloadPdf}
+                            disabled={pdfProgress > 0 && pdfProgress < 100}
+                            className="group flex w-full items-center justify-between rounded-[22px] border border-white/[0.08] bg-black/20 p-4 transition-all hover:border-white/[0.14] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.05] text-white">
+                                <Download className="w-5 h-5" />
+                              </div>
+                              <div className="text-left">
+                                <div className="font-semibold text-[var(--color-text-primary)]">Professional PDF</div>
+                                <div className="text-sm text-[var(--color-text-secondary)]">
+                                  {pdfProgress > 0 && pdfProgress < 100 ? `Generating... ${pdfProgress}%` : 'Print-ready document'}
+                                </div>
+                              </div>
+                            </div>
+                            <span className="text-sm text-[var(--color-text-secondary)] transition-colors group-hover:text-[var(--color-text-primary)]">Export</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              if (currentBook.finalBook) {
+                                const blob = new Blob([currentBook.finalBook], { type: 'text/markdown;charset=utf-8' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${currentBook.title.replace(/[^a-z0-9\s-]/gi, '').replace(/\s+/g, '_').toLowerCase()}_book.md`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                              }
+                            }}
+                            className="group flex w-full items-center justify-between rounded-[22px] border border-white/[0.08] bg-black/20 p-4 transition-all hover:border-white/[0.14]"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-300">
+                                <Download className="w-5 h-5" />
+                              </div>
+                              <div className="text-left">
+                                <div className="font-semibold text-[var(--color-text-primary)]">Markdown Source</div>
+                                <div className="text-sm text-[var(--color-text-secondary)]">Easy to edit and version</div>
+                              </div>
+                            </div>
+                            <span className="text-sm text-[var(--color-text-secondary)] transition-colors group-hover:text-[var(--color-text-primary)]">Export</span>
+                          </button>
+                        </div>
+
+                        {pdfProgress > 0 && pdfProgress < 100 && (
+                          <div className="mt-4">
+                            <div className="w-full overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-bg)] h-2">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 transition-all duration-300"
+                                style={{ width: `${pdfProgress}%` }}
+                              />
+                            </div>
+                            <p className="mt-2 text-center text-xs text-[var(--color-text-secondary)]">
+                              Generating PDF... {pdfProgress}%
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="rounded-[30px] border border-white/[0.08] bg-white/[0.025] p-6">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-orange-200/70">Snapshot</p>
+                      <div className="mt-4 space-y-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-[var(--color-text-secondary)]">Completed modules</span>
+                          <span className="font-semibold text-[var(--color-text-primary)]">{completedModulesNew.length}/{totalModuleCount}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-[var(--color-text-secondary)]">Failed modules</span>
+                          <span className="font-semibold text-[var(--color-text-primary)]">{failedModulesNew.length}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-[var(--color-text-secondary)]">Words</span>
+                          <span className="font-semibold text-[var(--color-text-primary)]">{totalWords.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (false && view === 'detail' && currentBook) {
     const areAllModulesDone =
       currentBook.roadmap &&
       currentBook.modules.length === currentBook.roadmap.modules.length &&
@@ -2360,26 +2792,26 @@ export function BookView({
               <ArrowLeft className="w-4 h-4" />
               Back to My Books
             </button>
-            <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-card)] shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
-              <div className="relative overflow-hidden border-b border-[var(--color-border)] bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.12),transparent_35%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-8">
-                <div className="absolute right-6 top-6 hidden h-16 w-16 rounded-full border border-white/10 bg-white/5 backdrop-blur-md md:block" />
+            <div className="overflow-hidden rounded-[24px] border border-[var(--color-border)] bg-[var(--color-card)] shadow-none">
+              <div className="relative overflow-hidden border-b border-[var(--color-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01)),radial-gradient(circle_at_top,rgba(249,115,22,0.08),transparent_30%)] p-7">
+                <div className="absolute right-6 top-6 hidden h-12 w-12 rounded-full border border-white/10 bg-white/5 backdrop-blur-md md:block" />
                 <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.26em] text-orange-200/70">Book Workspace</p>
                 <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                   <div className="max-w-3xl">
-                    <h1 className="mb-2 text-3xl font-bold tracking-tight text-[var(--color-text-primary)] md:text-5xl">{currentBook.title}</h1>
-                    <p className="max-w-2xl text-sm leading-7 text-[var(--color-text-secondary)] md:text-base">
+                    <h1 className="mb-2 text-3xl font-bold tracking-tight text-[var(--color-text-primary)] md:text-4xl">{currentBook.title}</h1>
+                    <p className="max-w-2xl text-sm leading-7 text-[var(--color-text-secondary)]">
                       {currentBook.goal}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 md:min-w-[280px]">
-                    <div className="rounded-2xl border border-[var(--color-border)] bg-black/20 p-4">
+                    <div className="rounded-[18px] border border-[var(--color-border)] bg-white/[0.02] p-4">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Status</p>
                       <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
                         {getStatusIcon(currentBook.status)}
                         {getStatusText(currentBook.status)}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-[var(--color-border)] bg-black/20 p-4">
+                    <div className="rounded-[18px] border border-[var(--color-border)] bg-white/[0.02] p-4">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">Progress</p>
                       <div className="mt-2 text-sm font-semibold text-[var(--color-text-primary)]">
                         {completedModules.length}/{Math.max(currentBook.roadmap?.modules.length || currentBook.modules.length, 1)} modules
@@ -2464,7 +2896,7 @@ export function BookView({
                   !isGenerating &&
                   !isPaused &&
                   generationStatus?.status !== 'waiting_retry' && (
-                    <div className="rounded-[28px] border border-[var(--color-border)] bg-[var(--color-card)] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.22)]">
+                    <div className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-none">
                       <div className="flex items-center gap-4 mb-5">
                         <div className="w-10 h-10 flex items-center justify-center bg-gray-500/10 rounded-lg">
                           <Play className="w-5 h-5 text-gray-400" />
@@ -2516,7 +2948,7 @@ export function BookView({
                   !localIsGenerating &&
                   !isGenerating &&
                   !isPaused && (
-                    <div className="bg-[var(--color-card)] border border-green-500/30 rounded-lg p-7 space-y-5 animate-fade-in-up">
+                    <div className="bg-[var(--color-card)] border border-green-500/30 rounded-[22px] p-6 space-y-5 animate-fade-in-up">
                       <div className="text-center">
                         <div className="w-12 h-12 flex items-center justify-center bg-green-500/10 rounded-full mx-auto mb-3">
                           <CheckCircle className="w-7 h-7 text-green-400" />
@@ -2534,7 +2966,7 @@ export function BookView({
                   )}
 
                 {currentBook.status === 'assembling' && (
-                  <div className="bg-[var(--color-card)] backdrop-blur-xl border-2 border-[var(--color-border)] rounded-lg p-8 space-y-6 animate-assembling-glow text-center">
+                  <div className="bg-[var(--color-card)] backdrop-blur-xl border border-[var(--color-border)] rounded-[22px] p-7 space-y-6 animate-assembling-glow text-center">
                     <div className="relative w-14 h-14 mx-auto">
                       <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
                       <div className="relative w-14 h-14 flex items-center justify-center bg-green-500/10 rounded-full">
@@ -2554,7 +2986,7 @@ export function BookView({
                 )}
 
                 {currentBook.status === 'completed' && detailTab === 'overview' && (
-                  <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg p-7">
+                  <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-[22px] p-6">
                     <div className="flex items-center gap-3 mb-5">
                       <div className="w-10 h-10 flex items-center justify-center bg-gray-500/10 rounded-lg">
                         <Download className="w-5 h-5 text-gray-400" />
