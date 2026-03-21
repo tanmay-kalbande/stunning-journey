@@ -89,8 +89,8 @@ const LandingPage = ({
   };
 
   const renderHome = () => (
-    <div className="flex min-h-full w-full max-w-[1180px] flex-col items-center justify-center px-6 py-10 text-center md:px-8 md:py-14">
-      <div className="max-w-[980px]">
+    <div className="flex min-h-full w-full max-w-[1080px] flex-col items-center justify-center px-6 py-8 text-center md:px-8 md:py-10">
+      <div className="max-w-[900px]">
         <motion.div
           className="mb-5 hidden items-center justify-center md:flex"
           initial={{ opacity: 0, y: 12 }}
@@ -104,7 +104,7 @@ const LandingPage = ({
         </motion.div>
 
         <motion.h1
-          className="mx-auto mb-4 max-w-[1020px] text-[54px] font-extrabold leading-[0.94] tracking-[-0.04em] text-white md:text-[76px] lg:text-[108px]"
+          className="mx-auto mb-4 max-w-[900px] text-[46px] font-extrabold leading-[0.95] tracking-[-0.035em] text-white md:text-[64px] lg:text-[86px]"
           style={{ fontFamily: "'Rubik', sans-serif" }}
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -115,7 +115,7 @@ const LandingPage = ({
         </motion.h1>
 
         <motion.p
-          className="mx-auto mb-12 max-w-3xl px-4 text-[15px] leading-[1.75] text-white/52 md:text-lg"
+          className="mx-auto mb-10 max-w-[760px] px-4 text-[15px] leading-[1.7] text-white/52 md:text-[17px]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
@@ -124,15 +124,15 @@ const LandingPage = ({
         </motion.p>
       </div>
 
-      <div className="mb-12 grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="mb-10 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
         {[
           { title: 'Focused Model Stack', desc: 'Only four approved GLM models, tuned for clarity and consistency.' },
           { title: 'Structured Outputs', desc: 'Roadmap, chapters, summary, and glossary in one guided pipeline.' },
           { title: 'Secure By Design', desc: 'Zhipu key stays server-side through the edge proxy and Supabase auth.' },
         ].map((item) => (
-          <div key={item.title} className="rounded-[26px] border border-white/10 bg-white/[0.04] p-6 text-left backdrop-blur-sm">
+          <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-left backdrop-blur-sm">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-200/80">{item.title}</p>
-            <p className="text-[15px] leading-8 text-white/72">{item.desc}</p>
+            <p className="text-sm leading-7 text-white/72">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -140,14 +140,14 @@ const LandingPage = ({
       <div className="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
         <button
           onClick={onGetStarted}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white px-10 py-3.5 text-[13px] font-bold tracking-[0.18em] text-black transition-all hover:bg-white/90 sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white px-8 py-3 text-[13px] font-bold tracking-[0.18em] text-black transition-all hover:bg-white/90 sm:w-auto"
         >
           Start Building
           <MoveRight className="h-4 w-4" />
         </button>
         <button
           onClick={() => handleTabChange('demo')}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-10 py-3.5 text-[13px] font-medium tracking-wide text-white/70 transition-all hover:border-white/20 hover:text-white sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-8 py-3 text-[13px] font-medium tracking-wide text-white/70 transition-all hover:border-white/20 hover:text-white sm:w-auto"
         >
           View Sample Book
         </button>
@@ -544,7 +544,7 @@ const LandingPage = ({
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="flex h-full w-full flex-1 flex-col items-center justify-center px-6 pb-28 pt-24"
+                className="flex h-full w-full flex-1 flex-col items-center justify-center px-6 pb-24 pt-20"
               >
                 {renderDesktopContent()}
               </motion.div>
