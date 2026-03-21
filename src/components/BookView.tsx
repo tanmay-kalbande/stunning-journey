@@ -1233,23 +1233,14 @@ const HomeView = ({
   onOpenSettings: () => void;
 }) => (
   <div
-    className={`flex-1 flex flex-col items-center px-6 pb-12 w-full transition-all duration-500 ${showAdvanced ? 'min-h-screen overflow-y-auto pt-24' : 'h-screen overflow-hidden pt-20'
+    className={`flex-1 flex flex-col items-center px-6 w-full transition-all duration-500 ${showAdvanced ? 'min-h-screen overflow-y-auto pt-24 pb-12' : 'min-h-screen justify-center pt-24 pb-16'
       }`}
     style={{ background: 'var(--color-bg)', fontFamily: 'Rubik, sans-serif' }}
   >
     {/* Dynamic Spacer — centers content below the fixed 80px header */}
-    <div
-      className="transition-all duration-700 ease-in-out overflow-hidden"
-      style={{
-        height: showAdvanced ? '0' : 'max(8vh, 0px)',
-        minHeight: showAdvanced ? '0' : 0,
-        opacity: showAdvanced ? 0 : 1,
-        flexShrink: 1
-      }}
-    />
     <div className="w-full max-w-2xl mx-auto animate-subtle-fade">
-      <div className="text-center mb-8">
-        <div className="mb-5 hidden items-center justify-center md:flex">
+      <div className="text-center mb-6">
+        <div className="mb-4 hidden items-center justify-center md:flex">
           <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-orange-200/90">
             <Sparkles className="h-3.5 w-3.5" />
             Pustakam Injin
@@ -1258,19 +1249,19 @@ const HomeView = ({
         <img
           src={theme === 'dark' ? '/white-logo.png' : '/black-logo.png'}
           alt="Pustakam"
-          className="w-14 h-14 mx-auto mb-5"
+          className="w-12 h-12 mx-auto mb-4"
         />
-        <h1 className="text-4xl md:text-[56px] font-bold text-[var(--color-text-primary)] tracking-tight leading-[0.96]">
+        <h1 className="text-4xl md:text-[52px] font-bold text-[var(--color-text-primary)] tracking-tight leading-[0.96]">
           Build Better<br />
           <span className="text-orange-500">Learning Books.</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)] md:text-base">
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)] md:text-base">
           Start with one idea. Injin turns it into a clean, structured book.
         </p>
       </div>
 
-      <div className="rounded-[32px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.22)] md:p-4">
-        <div className="grok-input-bar min-h-[136px] rounded-[26px] border border-white/[0.06] bg-black/25">
+      <div className="rounded-[28px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-2.5 shadow-[0_18px_56px_rgba(0,0,0,0.2)] md:p-3">
+        <div className="grok-input-bar min-h-[112px] rounded-[22px] border border-white/[0.06] bg-black/25">
           <textarea
             value={formData.goal}
             onChange={(e) => {
@@ -1286,8 +1277,8 @@ const HomeView = ({
             }}
             placeholder="Describe the book you want to create"
             className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] text-base resize-none"
-            rows={3}
-            style={{ minHeight: '72px', maxHeight: '200px' }}
+            rows={2}
+            style={{ minHeight: '56px', maxHeight: '180px' }}
           />
 
           <button
@@ -1310,7 +1301,7 @@ const HomeView = ({
       </div>
 
       {/* Action Chips */}
-      <div className="grok-chips">
+      <div className="grok-chips mt-5">
         {/* Auto/Options chip (moved from input bar) */}
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
@@ -1337,7 +1328,7 @@ const HomeView = ({
       {/* Advanced Options Dropdown */}
       {showAdvanced && (
         <div
-          className="mt-6 p-6 bg-[var(--color-card)] border border-[var(--color-border)] rounded-[28px] shadow-xl"
+          className="mt-5 p-6 bg-[var(--color-card)] border border-[var(--color-border)] rounded-[28px] shadow-xl"
           style={{
             animation: 'dropdownSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             transformOrigin: 'top center'
@@ -1498,7 +1489,7 @@ const HomeView = ({
       )}
 
       {/* Footer hint */}
-      <p className="text-center text-xs text-[var(--color-text-secondary)] mt-8 opacity-60">
+      <p className="mt-6 text-center text-xs text-[var(--color-text-secondary)] opacity-60">
         Press Enter to generate • Secure GLM proxy required
       </p>
     </div>
