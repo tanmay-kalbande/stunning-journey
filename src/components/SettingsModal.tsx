@@ -202,9 +202,9 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" onClick={onClose}>
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-3 md:items-center md:p-4 backdrop-blur-md" onClick={onClose}>
         <div
-          className="relative flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#080808] shadow-[0_30px_120px_rgba(0,0,0,0.55)] md:h-[720px]"
+          className="relative my-auto flex max-h-[calc(100vh-24px)] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#080808] shadow-[0_30px_120px_rgba(0,0,0,0.55)] md:max-h-[calc(100vh-40px)]"
           onClick={e => e.stopPropagation()}
         >
           <div className="pointer-events-none absolute inset-0 opacity-45">
@@ -213,7 +213,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01)),radial-gradient(circle_at_top,rgba(249,115,22,0.12),transparent_30%)]" />
 
           {/* Header */}
-          <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/[0.08] px-5 py-4 md:px-7">
+          <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/[0.08] px-5 py-3.5 md:px-7">
             <div className="flex items-center gap-3">
               <div className="rounded-full border border-orange-400/20 bg-orange-400/10 p-2 text-orange-300">
                 <Settings size={16} />
@@ -231,9 +231,9 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
             </button>
           </div>
 
-          <div className="relative z-10 flex flex-1 overflow-hidden flex-col md:flex-row">
-            <div className="flex w-full flex-col overflow-hidden border-b border-white/[0.06] bg-black/35 backdrop-blur-xl md:w-[300px] md:border-b-0 md:border-r">
-              <div className="flex flex-1 items-center overflow-x-auto p-4 whitespace-nowrap custom-scrollbar md:flex-col md:items-start md:overflow-x-hidden md:overflow-y-auto md:p-8 md:whitespace-normal">
+          <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden flex-col md:flex-row">
+            <div className="flex w-full flex-col overflow-hidden border-b border-white/[0.06] bg-black/35 backdrop-blur-xl md:w-[280px] md:border-b-0 md:border-r">
+              <div className="flex flex-1 items-center overflow-x-auto p-4 whitespace-nowrap custom-scrollbar md:flex-col md:items-start md:overflow-x-hidden md:overflow-y-auto md:p-6 md:whitespace-normal">
                 <div className="flex items-center gap-2 mb-0 md:mb-8 mr-6 md:mr-0 shrink-0">
                   <div className="h-6 w-1.5 rounded-full bg-gradient-to-b from-orange-500 to-amber-300 md:h-8 md:w-2" />
                   <h2 className="text-base font-black uppercase tracking-tight text-white md:text-xl">System</h2>
@@ -259,7 +259,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                   ))}
                 </nav>
 
-                <div className="hidden md:block mt-12 pt-8 border-t border-white/[0.06] w-full">
+                <div className="hidden md:block mt-8 pt-6 border-t border-white/[0.06] w-full">
                   <p className="mb-4 px-4 text-[10px] font-black uppercase tracking-widest text-white/35">Resource Center</p>
                   <div className="space-y-1">
                     <button
@@ -287,7 +287,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                 </div>
               </div>
 
-              <div className="hidden md:flex mt-auto border-t border-white/[0.06] p-8">
+              <div className="hidden md:flex mt-auto border-t border-white/[0.06] p-6">
                 <button
                   onClick={onToggleTheme}
                   className="group flex w-full items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 transition-all hover:border-orange-500/30"
@@ -303,7 +303,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] p-5 text-[var(--color-text-primary)] scroll-smooth md:p-8">
+            <div className="flex-1 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] p-5 text-[var(--color-text-primary)] scroll-smooth md:p-6">
               {/* Personality Tab */}
               {activeTab === 'personality' && (
                 <div className="space-y-8">
@@ -660,7 +660,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
           </div>
 
           {/* Footer */}
-          <div className="relative z-10 flex shrink-0 flex-col items-center justify-between gap-4 border-t border-white/[0.08] bg-black/35 px-4 py-5 backdrop-blur-xl md:flex-row md:gap-0 md:px-8">
+          <div className="relative z-10 flex shrink-0 flex-col items-center justify-between gap-4 border-t border-white/[0.08] bg-black/35 px-4 py-4 backdrop-blur-xl md:flex-row md:gap-0 md:px-6">
             <div className="flex items-center gap-2 order-2 md:order-1">
               <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/20" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">System Synchronized</span>

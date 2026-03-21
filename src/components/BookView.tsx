@@ -1539,43 +1539,28 @@ const BookListGrid = ({
   return (
     <div className="h-screen flex flex-col" style={{ background: 'var(--color-bg)', fontFamily: 'Rubik, sans-serif' }}>
       <div className="flex-shrink-0 w-full sticky top-0 z-40 bg-[var(--color-bg)]/92 pb-6 pt-6 px-8 lg:px-12 backdrop-blur-xl transition-colors duration-300">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.26em] text-orange-200/70">Library</p>
-            <h2 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Your Bookshelf</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{books.length} {books.length === 1 ? 'project' : 'projects'} in your workspace</p>
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Your Bookshelf</h2>
+              <p className="text-sm text-[var(--color-text-secondary)]">{books.length} {books.length === 1 ? 'project' : 'projects'}</p>
+            </div>
           </div>
-          <div className="flex flex-col gap-3 lg:items-end">
-            <div className="flex flex-wrap items-center gap-2">
-              {(['all', 'in-progress', 'completed', 'error'] as const).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setStatusFilter(filter)}
-                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-all ${
-                    statusFilter === filter
-                      ? 'border-orange-500/20 bg-orange-500/[0.08] text-orange-200'
-                      : 'border-white/[0.08] bg-white/[0.025] text-[var(--color-text-secondary)] hover:border-white/[0.16] hover:text-[var(--color-text-primary)]'
-                  }`}
-                >
-                  {filter === 'all' ? 'All' : filter.replace('-', ' ')}
-                </button>
-              ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search books"
+                value={searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                className="w-52 rounded-full border border-gray-200 bg-gray-100 pl-10 pr-4 py-2 text-sm text-gray-900 placeholder-gray-500 transition-all focus:w-60 focus:border-orange-500/40 focus:outline-none dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:border-orange-400/40"
+              />
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                  className="w-48 rounded-full border border-gray-200 bg-gray-100 pl-10 pr-4 py-2 text-sm text-gray-900 placeholder-gray-500 transition-all focus:w-64 focus:border-orange-500/40 focus:outline-none dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:border-orange-400/40"
-                />
-              </div>
-              <button onClick={() => setShowListInMain(false)} className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition-all hover:border-gray-300 hover:text-gray-900 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-white">
-                <ArrowLeft className="w-4 h-4 inline mr-2" /> Back
-              </button>
-            </div>
+            <button onClick={() => setShowListInMain(false)} className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 transition-all hover:border-gray-300 hover:text-gray-900 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-white">
+              <ArrowLeft className="w-4 h-4 inline mr-2" /> Back
+            </button>
           </div>
         </div>
       </div>
@@ -1605,14 +1590,13 @@ const BookListGrid = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {filteredBooks.map((book) => {
                 const completedModules = book.modules.filter((m) => m.status === 'completed').length;
                 const totalModules = book.modules.length;
                 const wordCount = book.modules.reduce((acc, m) => acc + (m.wordCount || 0), 0) || book.totalWords || 0;
                 const Icon = getBookIcon(book.title);
                 const completionRatio = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
-                const readMinutes = Math.max(8, Math.round(wordCount / 220) || 8);
 
                 return (
                   <div
@@ -1620,14 +1604,14 @@ const BookListGrid = ({
                     onMouseEnter={() => setHoveredBookId(book.id)}
                     onMouseLeave={() => setHoveredBookId(null)}
                     onClick={() => onSelectBook(book.id)}
-                    className="group relative cursor-pointer overflow-hidden rounded-[24px] border border-gray-200/80 bg-white/96 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500/20 dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.04]"
+                    className="group relative cursor-pointer overflow-hidden rounded-[20px] border border-gray-200/80 bg-white/96 p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500/20 dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.04]"
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className={`relative h-24 w-[74px] shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br ${getBookCoverTone(book.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`relative h-20 w-[60px] shrink-0 overflow-hidden rounded-[16px] border border-white/10 bg-gradient-to-br ${getBookCoverTone(book.title)} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]`}>
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_38%),linear-gradient(180deg,rgba(8,8,8,0.02),rgba(8,8,8,0.44))]" />
-                        <div className="absolute inset-x-0 bottom-0 p-2.5">
-                          <div className="mb-1.5 inline-flex rounded-full border border-white/15 bg-black/20 p-1 text-white/90 backdrop-blur-md">
-                            <Icon className="h-3 w-3" />
+                        <div className="absolute inset-x-0 bottom-0 p-2">
+                          <div className="mb-1 inline-flex rounded-full border border-white/15 bg-black/20 p-1 text-white/90 backdrop-blur-md">
+                            <Icon className="h-2.5 w-2.5" />
                           </div>
                           <p className="line-clamp-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-white/90">
                             {book.title}
@@ -1636,8 +1620,8 @@ const BookListGrid = ({
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                          <span className="inline-flex items-center rounded-full border border-orange-500/15 bg-orange-500/[0.07] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-300">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center rounded-full border border-orange-500/15 bg-orange-500/[0.07] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-orange-300">
                             {getStatusBadge(book.status)}
                           </span>
                           <button
@@ -1651,33 +1635,31 @@ const BookListGrid = ({
                           </button>
                         </div>
 
-                        <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'Rubik, sans-serif' }}>
+                        <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'Rubik, sans-serif' }}>
                           {book.title}
                         </h3>
-                        <p className="mt-1.5 line-clamp-2 text-[13px] leading-5 text-[var(--color-text-secondary)]">
-                          {book.goal || 'Structured learning project ready for generation and export.'}
-                        </p>
-
-                        <div className="mt-3.5 flex flex-wrap gap-1.5">
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
                             <FileText size={10} />
                             {totalModules} modules
                           </span>
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
-                            <Sparkles size={10} />
-                            {wordCount.toLocaleString()} words
-                          </span>
+                          {wordCount > 0 && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
+                              <Sparkles size={10} />
+                              {wordCount.toLocaleString()}
+                            </span>
+                          )}
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium text-[var(--color-text-secondary)]">
                             <Clock size={10} />
-                            {readMinutes} min read
+                            {new Date(book.updatedAt).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 border-t border-white/[0.08] pt-3">
+                    <div className="mt-3 border-t border-white/[0.08] pt-3">
                       <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
-                        <span>Progress</span>
+                        <span>{completedModules}/{Math.max(totalModules, 1)} done</span>
                         <span>{completionRatio}%</span>
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
@@ -1686,8 +1668,7 @@ const BookListGrid = ({
                           style={{ width: `${completionRatio}%` }}
                         />
                       </div>
-                      <div className="mt-4 flex items-center justify-between text-[11px] font-medium text-[var(--color-text-secondary)]">
-                        <span>{new Date(book.updatedAt).toLocaleDateString()}</span>
+                      <div className="mt-3 flex items-center justify-end text-[11px] font-medium text-[var(--color-text-secondary)]">
                         <span className="text-orange-400 transition-colors group-hover:text-orange-300">
                           Open {'->'}
                         </span>
