@@ -661,20 +661,7 @@ const DetailTabButton = ({ label, Icon, isActive, onClick }: { label: ReactNode;
 );
 
 // ============================================================================
-// SLIDERS ICON (inline — SlidersHorizontal not available in all lucide versions)
-// ============================================================================
-const SlidersIcon = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 16 16" fill="none"
-    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-    <path d="M2 4h12M2 8h8M2 12h5"/>
-    <circle cx="11" cy="4" r="1.5" fill="currentColor" stroke="none"/>
-    <circle cx="7" cy="8" r="1.5" fill="currentColor" stroke="none"/>
-    <circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-  </svg>
-);
-
-// ============================================================================
-// HOME VIEW
+// HOME VIEW  (original design, robustness-hardened)
 // ============================================================================
 const HomeView = ({
   onNewBook,
@@ -707,137 +694,103 @@ const HomeView = ({
   localIsGenerating: boolean;
   onOpenSettings: () => void;
 }) => {
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData(p => ({ ...p, goal: e.target.value }));
-    e.target.style.height = 'auto';
-    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && formData.goal.trim() && hasApiKey && !localIsGenerating) {
-      e.preventDefault();
-      handleCreateRoadmap(formData);
-    }
-  };
-
-  const canGenerate = formData.goal.trim() && hasApiKey && !localIsGenerating;
+  const canGenerate = !!(formData.goal.trim() && hasApiKey && !localIsGenerating);
 
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-screen px-6 pb-16 pt-24 w-full"
-      style={{ background: 'var(--color-bg)' }}
+      className={`flex-1 flex flex-col items-center px-6 pb-12 w-full transition-all duration-500 ${
+        showAdvanced ? 'min-h-screen overflow-y-auto pt-24' : 'h-screen overflow-hidden pt-20'
+      }`}
+      style={{ background: 'var(--color-bg)', fontFamily: 'Rubik, sans-serif' }}
     >
-      {/* Brand eyebrow */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-        <span
-          className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--color-text-secondary)]"
-          style={{ fontFamily: 'Rubik, sans-serif' }}
-        >
-          Pustakam Injin
-        </span>
-      </div>
-
-      {/* Headline */}
-      <div className="text-center mb-10">
-        <h1
-          className="text-[40px] md:text-[52px] font-bold leading-[1.05] tracking-tight text-[var(--color-text-primary)] mb-3"
-          style={{ fontFamily: 'Rubik, sans-serif' }}
-        >
-          Build better<br />
-          <span className="text-orange-500">learning books.</span>
-        </h1>
-        <p className="text-[15px] text-[var(--color-text-secondary)] leading-relaxed">
-          One idea. A complete, structured book.
-        </p>
-      </div>
-
-      {/* Input area */}
-      <div className="w-full max-w-[560px] flex flex-col gap-3">
-
-        {/* Input box */}
-        <div
-          className={`flex items-end gap-3 rounded-2xl border transition-all duration-200 px-4 pt-3.5 pb-3 bg-[var(--color-card)] ${
-            formData.goal.trim()
-              ? 'border-orange-500/50 shadow-[0_0_0_3px_rgba(249,115,22,0.08)]'
-              : 'border-[var(--color-border)] hover:border-white/20'
-          }`}
-        >
-          <textarea
-            ref={textareaRef}
-            value={formData.goal}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Describe the book you want to create…"
-            rows={1}
-            className="flex-1 bg-transparent border-none outline-none resize-none text-[15px] text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)]/40 leading-relaxed"
-            style={{ minHeight: '24px', maxHeight: '160px', fontFamily: 'inherit' }}
+      <div className="w-full max-w-2xl mx-auto animate-subtle-fade">
+        {/* Badge + logo + headline */}
+        <div className="text-center mb-8">
+          <div className="mb-5 hidden items-center justify-center md:flex">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-orange-200/90">
+              <Sparkles className="h-3.5 w-3.5" /> Pustakam Injin
+            </span>
+          </div>
+          <img
+            src={theme === 'dark' ? '/white-logo.png' : '/black-logo.png'}
+            alt="Pustakam"
+            className="w-14 h-14 mx-auto mb-5"
           />
+          <h1 className="text-4xl md:text-[56px] font-bold text-[var(--color-text-primary)] tracking-tight leading-[0.96]">
+            Build Better<br />
+            <span className="text-orange-500">Learning Books.</span>
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--color-text-secondary)] md:text-base">
+            Start with one idea. Injin turns it into a clean, structured book.
+          </p>
+        </div>
 
-          {/* Enhance button */}
+        {/* Input bar */}
+        <div className="grok-input-bar">
+          <textarea
+            value={formData.goal}
+            onChange={e => {
+              setFormData(p => ({ ...p, goal: e.target.value }));
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey && canGenerate) {
+                e.preventDefault();
+                handleCreateRoadmap(formData);
+              }
+            }}
+            placeholder="Describe the book you want to create"
+            className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] text-base resize-none"
+            rows={1}
+            style={{ minHeight: '24px', maxHeight: '200px' }}
+          />
           <button
-            onClick={handleEnhanceWithAI}
+            onClick={() => { if (!showAdvanced) setShowAdvanced(true); handleEnhanceWithAI(); }}
             disabled={!formData.goal.trim() || isEnhancing || !hasApiKey}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[12px] font-medium text-[var(--color-text-secondary)] hover:border-orange-500/50 hover:text-orange-400 hover:bg-orange-500/5 transition-all disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
+            className="grok-input-icon shrink-0 flex items-center gap-1.5 text-sm"
+            title="Enhance prompt with AI"
           >
-            {isEnhancing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-            {isEnhancing ? 'Refining…' : 'Enhance'}
+            {isEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            <span className="hidden sm:inline">{isEnhancing ? 'Refining…' : 'Enhance'}</span>
           </button>
         </div>
 
         {/* Action chips */}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-[13px] transition-all ${
-              showAdvanced
-                ? 'border-orange-500/50 text-orange-400 bg-orange-500/5'
-                : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-[var(--color-text-primary)]'
-            }`}
-          >
-            <SlidersIcon size={13} />
-            Options
-            <ChevronDown size={12} className={`opacity-60 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+        <div className="grok-chips">
+          <button onClick={() => setShowAdvanced(!showAdvanced)} className="grok-chip">
+            <Settings size={16} /> Guided
+            <ChevronDown size={12} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
           </button>
-
           {bookCount > 0 && (
-            <button
-              onClick={onShowList}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[var(--color-border)] text-[13px] text-[var(--color-text-secondary)] hover:border-white/20 hover:text-[var(--color-text-primary)] transition-all"
-            >
-              <BookOpen size={13} />
-              Library
-              <span className="text-[11px] opacity-60">({bookCount})</span>
+            <button onClick={onShowList} className="grok-chip">
+              <List size={16} /> My Library ({bookCount})
             </button>
           )}
+          <button onClick={onOpenSettings} className="grok-chip">
+            <Settings size={16} /> Settings
+          </button>
         </div>
 
-        {/* Advanced options panel */}
+        {/* Advanced options */}
         {showAdvanced && (
           <div
-            className="flex flex-col gap-4 border border-[var(--color-border)] rounded-2xl p-5 bg-[var(--color-card)]"
-            style={{ animation: 'dropdownSlideIn 0.2s cubic-bezier(0.16,1,0.3,1)', transformOrigin: 'top center' }}
+            className="mt-6 p-6 bg-[var(--color-card)] border border-[var(--color-border)] rounded-[28px] shadow-xl"
+            style={{ animation: 'dropdownSlideIn 0.25s cubic-bezier(0.16,1,0.3,1)', transformOrigin: 'top center' }}
           >
-            {/* Audience + Complexity */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-secondary)] mb-1.5">
-                  Audience
-                </label>
+                <label className="block text-sm font-semibold mb-2 text-[var(--color-text-primary)]">Target Audience</label>
                 <input
                   type="text"
                   value={formData.targetAudience}
                   onChange={e => setFormData(p => ({ ...p, targetAudience: e.target.value }))}
-                  placeholder="e.g. Beginners"
-                  className="w-full h-9 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-3 text-[13px] text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)]/40 outline-none focus:border-orange-500/50 transition-colors"
+                  placeholder="e.g. Beginners, Professionals"
+                  className="w-full h-11 bg-[var(--color-bg)] border-2 border-[var(--color-border)] rounded-xl px-4 text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)]/50 focus:border-[var(--color-text-secondary)]/50 focus:ring-4 focus:ring-[var(--color-text-secondary)]/10 transition-all outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-secondary)] mb-1.5">
-                  Complexity
-                </label>
+                <label className="block text-sm font-semibold mb-2 text-[var(--color-text-primary)]">Complexity Level</label>
                 <CustomSelect
                   value={formData.complexityLevel || 'intermediate'}
                   onChange={val => setFormData(p => ({ ...p, complexityLevel: val as any }))}
@@ -850,103 +803,81 @@ const HomeView = ({
               </div>
             </div>
 
-            {/* Mode toggle */}
-            <div>
-              <label className="block text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-secondary)] mb-1.5">
-                Writing mode
-              </label>
-              <div className="flex gap-1 p-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl">
-                {[
-                  { value: 'stellar',   label: 'Stellar',  desc: 'Clean & structured' },
-                  { value: 'blackhole', label: 'Street',   desc: 'Raw & direct' },
-                ].map(({ value, label, desc }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setFormData(p => ({ ...p, generationMode: value as any, language: value === 'stellar' ? 'en' : p.language }))}
-                    className={`flex-1 py-2 px-3 rounded-lg text-[12px] font-medium transition-all ${
-                      formData.generationMode === value
-                        ? 'bg-orange-500 text-white shadow-sm'
-                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
-                    }`}
-                  >
-                    {label}
-                    <span className={`block text-[10px] font-normal mt-0.5 ${formData.generationMode === value ? 'text-white/70' : 'text-[var(--color-text-secondary)]/60'}`}>
-                      {desc}
-                    </span>
-                  </button>
-                ))}
-              </div>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-2 text-[var(--color-text-primary)]">Context & Goals (Optional)</label>
+              <textarea
+                value={formData.reasoning}
+                onChange={e => setFormData(p => ({ ...p, reasoning: e.target.value }))}
+                placeholder="Why are you writing this book? What should the reader achieve?"
+                className="w-full bg-[var(--color-bg)] border-2 border-[var(--color-border)] rounded-xl p-4 text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)]/50 focus:border-[var(--color-text-secondary)]/50 outline-none resize-none text-sm"
+                rows={3}
+              />
             </div>
 
-            {/* Language (Street mode only) */}
-            {formData.generationMode === 'blackhole' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pt-4 border-t border-[var(--color-border)]">
               <div>
-                <label className="block text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-secondary)] mb-1.5">
-                  Language
-                </label>
-                <div className="flex gap-1 p-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl">
+                <label className="block text-sm font-semibold mb-2 text-[var(--color-text-primary)]">Generation Mode</label>
+                <div className="flex p-1 bg-[var(--color-bg)] border-2 border-[var(--color-border)] rounded-xl">
                   {[
-                    { value: 'en', label: 'English' },
-                    { value: 'hi', label: 'Hindi' },
-                    { value: 'mr', label: 'Marathi' },
-                  ].map(({ value, label }) => (
+                    { value: 'stellar',   label: 'Stellar', icon: Sparkles },
+                    { value: 'blackhole', label: 'Street',  icon: Crown },
+                  ].map(({ value, label, icon: Icon }) => (
                     <button
                       key={value}
                       type="button"
-                      onClick={() => setFormData(p => ({ ...p, language: value as any }))}
-                      className={`flex-1 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
-                        formData.language === value
-                          ? 'bg-orange-500 text-white'
+                      onClick={() => setFormData(p => ({
+                        ...p,
+                        generationMode: value as any,
+                        language: value === 'stellar' ? 'en' : p.language,
+                      }))}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                        formData.generationMode === value
+                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30 shadow-inner'
                           : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                       }`}
                     >
-                      {label}
+                      <Icon size={14} /> {label}
                     </button>
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Context textarea */}
-            <div>
-              <label className="block text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-text-secondary)] mb-1.5">
-                Context <span className="normal-case opacity-60">(optional)</span>
-              </label>
-              <textarea
-                value={formData.reasoning}
-                onChange={e => setFormData(p => ({ ...p, reasoning: e.target.value }))}
-                placeholder="Why are you writing this book? What should readers achieve?"
-                rows={2}
-                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)]/40 outline-none focus:border-orange-500/50 resize-none transition-colors"
-              />
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-[var(--color-text-primary)]">Output Language</label>
+                <CustomSelect
+                  value={formData.language || 'en'}
+                  onChange={val => setFormData(p => ({ ...p, language: val as any }))}
+                  options={[
+                    { value: 'en', label: 'English (Standard)' },
+                    ...(formData.generationMode === 'blackhole' ? [
+                      { value: 'hi', label: 'Hindi (Tapori)' },
+                      { value: 'mr', label: 'Marathi (Tapori)' },
+                    ] : []),
+                  ]}
+                />
+              </div>
             </div>
 
-            <div className="h-px bg-[var(--color-border)]" />
-
-            {/* Generate button */}
-            <button
-              onClick={() => canGenerate ? handleCreateRoadmap(formData) : onOpenSettings()}
-              disabled={!formData.goal.trim() || localIsGenerating}
-              className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[14px] font-medium rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
-            >
-              {localIsGenerating ? (
-                <><Loader2 size={16} className="animate-spin" /> Generating roadmap…</>
-              ) : !hasApiKey ? (
-                <><Settings size={16} /> Configure API first</>
-              ) : (
-                <><Sparkles size={16} /> Generate roadmap</>
-              )}
-            </button>
+            <div className="mt-8 pt-4 border-t border-[var(--color-border)]">
+              <button
+                onClick={() => canGenerate ? handleCreateRoadmap(formData) : onOpenSettings()}
+                disabled={!formData.goal.trim() || localIsGenerating}
+                className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {localIsGenerating ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Generating Roadmap…</>
+                ) : !hasApiKey ? (
+                  <><Settings className="w-5 h-5" /> Configure API First</>
+                ) : (
+                  <><Sparkles className="w-5 h-5" /> Generate Book Roadmap</>
+                )}
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Footer hint */}
-        {!showAdvanced && (
-          <p className="text-center text-[12px] text-[var(--color-text-secondary)] opacity-40">
-            Press Enter to generate
-          </p>
-        )}
+        <p className="text-center text-xs text-[var(--color-text-secondary)] mt-8 opacity-60">
+          Press Enter to generate • Secure GLM proxy required
+        </p>
       </div>
     </div>
   );
