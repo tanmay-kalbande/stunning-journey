@@ -26,6 +26,8 @@ const DEMO_BOOKS = [
     desc: 'A sharp, high-momentum learning book that turns a rough goal into an actionable, structured guide.',
     words: '19,914',
     chapters: '10',
+    accent: 'from-orange-500/80 via-amber-300/55 to-white/10',
+    eyebrow: 'Fast Track Guide',
     url: 'https://cdn.jsdelivr.net/gh/tanmay-kalbande/pustakam-cdn@main/demo-books/Burn_The_Boat_No_More_Someday_Shit.pdf',
   },
   {
@@ -36,6 +38,8 @@ const DEMO_BOOKS = [
     desc: 'A more layered educational sample with stronger structure, long-form clarity, and study-oriented pacing.',
     words: '24,152',
     chapters: '12',
+    accent: 'from-blue-500/60 via-cyan-300/40 to-emerald-200/10',
+    eyebrow: 'Deep Study Manual',
     url: 'https://cdn.jsdelivr.net/gh/tanmay-kalbande/pustakam-cdn@main/demo-books/Foundations_Of_Personal_Finance.pdf',
   },
 ] as const;
@@ -228,7 +232,27 @@ const LandingPage = ({
         </div>
 
         <div className="rounded-[26px] border border-white/10 bg-[#050505]/60 p-4 backdrop-blur-sm">
-          <div className="mb-3 h-28 rounded-2xl border border-white/10 bg-gradient-to-br from-orange-500/15 to-white/5" />
+          <div className="mb-3 rounded-[24px] border border-white/10 bg-[#0a0a0a] p-3">
+            <div className={`relative flex h-44 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br ${activeBook.accent}`}>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_40%),linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.48))]" />
+              <div className="absolute right-3 top-3 h-10 w-10 rounded-full border border-white/20 bg-white/10 backdrop-blur-md" />
+              <div className="relative z-10 flex h-full w-full flex-col justify-between p-4">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-white/70">{activeBook.eyebrow}</p>
+                  <div className="mt-3 h-px w-12 bg-white/25" />
+                </div>
+                <div>
+                  <p className="mb-2 text-[10px] uppercase tracking-[0.22em] text-white/60">Pustakam Injin</p>
+                  <h3 className="max-w-[220px] text-[26px] font-black leading-[0.92] text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
+                    {activeBook.title}
+                  </h3>
+                  <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-white/55">
+                    {activeBook.chapters} chapters • {activeBook.words} words
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
           <a
             href={activeBook.url}
             target="_blank"

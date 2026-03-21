@@ -2113,19 +2113,25 @@ export function BookView({
           Back to Library
         </button>
 
-        <div className="mb-10 text-center">
+        <div className="mb-8 text-center">
+          <div className="mb-5 hidden items-center justify-center md:flex">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-orange-200/90">
+              <Sparkles className="h-3.5 w-3.5" />
+              Pustakam Injin
+            </span>
+          </div>
           <div className="inline-flex items-center justify-center p-3 mb-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 text-[var(--color-text-primary)] tracking-tight">
-            Create Knowledge. <span className="text-orange-500">Not Documents.</span>
+          <h1 className="text-3xl md:text-[52px] font-bold mb-3 text-[var(--color-text-primary)] tracking-tight leading-[0.96]">
+            Build Better <span className="text-orange-500">Learning Books.</span>
           </h1>
-          <p className="text-[var(--color-text-secondary)] text-lg max-w-lg mx-auto leading-relaxed">
-            Describe your idea, and our AI will craft a comprehensive, professional book for you.
+          <p className="text-[var(--color-text-secondary)] text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+            Start with one idea and shape it into a polished, structured book.
           </p>
         </div>
 
-        <div className="space-y-8 bg-[var(--color-card)] backdrop-blur-xl border border-[var(--color-border)] p-8 rounded-3xl shadow-2xl">
+        <div className="space-y-8 bg-[var(--color-card)] backdrop-blur-xl border border-[var(--color-border)] p-8 rounded-[30px] shadow-[0_24px_80px_rgba(0,0,0,0.38)]">
           {/* Main Input Section */}
           <div>
             <label htmlFor="goal" className="block text-sm font-semibold mb-2 text-[var(--color-text-primary)] flex items-center gap-2">
