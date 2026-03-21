@@ -1,3 +1,4 @@
+// src/services/proxyService.ts
 import { supabase } from '../lib/supabaseClient';
 import { ModelID } from '../types';
 
