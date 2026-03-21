@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { APISettings } from '../types';
 import { storageUtils } from '../utils/storage';
 import { DisclaimerPage } from './DisclaimerPage';
+import NebulaBackground from './NebulaBackground';
 import { AI_SUITE_NAME, APP_AI_BRANDLINE, ZHIPU_MODELS } from '../constants/ai';
 
 interface SettingsModalProps {
@@ -199,36 +200,43 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
 
   if (!isOpen) return null;
 
-  if (!isOpen) return null;
-
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" onClick={onClose}>
         <div
-          className="relative w-full max-w-4xl bg-white dark:bg-[#1a1a1a] border border-[var(--color-border)] rounded-2xl shadow-2xl flex flex-col h-[90vh] md:h-[600px] overflow-hidden"
+          className="relative flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#080808] shadow-[0_30px_120px_rgba(0,0,0,0.55)] md:h-[720px]"
           onClick={e => e.stopPropagation()}
         >
+          <div className="pointer-events-none absolute inset-0 opacity-45">
+            <NebulaBackground opacity={0.28} />
+          </div>
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01)),radial-gradient(circle_at_top,rgba(249,115,22,0.12),transparent_30%)]" />
+
           {/* Header */}
-          <div className="px-4 md:px-6 py-4 flex items-center justify-between border-b border-gray-100 dark:border-white/[0.08] shrink-0">
+          <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/[0.08] px-5 py-4 md:px-7">
             <div className="flex items-center gap-3">
-              <Settings size={18} className="text-gray-400" />
-              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">System Preferences</h2>
+              <div className="rounded-full border border-orange-400/20 bg-orange-400/10 p-2 text-orange-300">
+                <Settings size={16} />
+              </div>
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-[0.22em] text-orange-200/80">System Preferences</h2>
+                <p className="mt-1 text-xs text-white/40">Workspace controls for Injin</p>
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="rounded-full border border-white/10 bg-white/[0.03] p-2 text-gray-400 transition-colors hover:bg-white/[0.08] hover:text-white"
             >
               <X size={18} />
             </button>
           </div>
 
-          <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
-            {/* Sidebar with Nebula visual cues */}
-            <div className={`w-full md:w-[280px] border-b md:border-b-0 md:border-r flex flex-col backdrop-blur-md transition-colors overflow-hidden ${theme === 'light' ? 'bg-white/80 border-gray-100' : 'bg-black/60 border-white/[0.05]'}`}>
-              <div className="p-4 md:p-8 flex md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-hidden items-center md:items-start whitespace-nowrap md:whitespace-normal custom-scrollbar flex-1">
+          <div className="relative z-10 flex flex-1 overflow-hidden flex-col md:flex-row">
+            <div className="flex w-full flex-col overflow-hidden border-b border-white/[0.06] bg-black/35 backdrop-blur-xl md:w-[300px] md:border-b-0 md:border-r">
+              <div className="flex flex-1 items-center overflow-x-auto p-4 whitespace-nowrap custom-scrollbar md:flex-col md:items-start md:overflow-x-hidden md:overflow-y-auto md:p-8 md:whitespace-normal">
                 <div className="flex items-center gap-2 mb-0 md:mb-8 mr-6 md:mr-0 shrink-0">
-                  <div className="w-1.5 md:w-2 h-6 md:h-8 bg-gradient-to-b from-orange-500 to-purple-600 rounded-full" />
-                  <h2 className="text-base md:text-xl font-black tracking-tight text-gray-900 dark:text-white uppercase">System</h2>
+                  <div className="h-6 w-1.5 rounded-full bg-gradient-to-b from-orange-500 to-amber-300 md:h-8 md:w-2" />
+                  <h2 className="text-base font-black uppercase tracking-tight text-white md:text-xl">System</h2>
                 </div>
                 <nav className="flex md:flex-col space-x-1 md:space-x-0 md:space-y-1 shrink-0">
                   {[
@@ -240,38 +248,37 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex items-center gap-3 px-4 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 text-left whitespace-nowrap ${activeTab === tab.id
-                        ? 'bg-gradient-to-r from-orange-500/10 to-purple-500/10 text-orange-500 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/[0.03]'
+                      className={`flex items-center gap-3 rounded-2xl px-4 py-2.5 text-left text-xs font-bold whitespace-nowrap transition-all duration-300 md:py-3 md:text-sm ${activeTab === tab.id
+                        ? 'bg-white/[0.08] text-orange-300 ring-1 ring-orange-400/20'
+                        : 'text-white/50 hover:bg-white/[0.04] hover:text-white'
                         }`}
                     >
-                      <tab.icon size={activeTab === tab.id ? 18 : 16} className={`shrink-0 ${activeTab === tab.id ? 'text-orange-500' : 'opacity-50'}`} />
+                      <tab.icon size={activeTab === tab.id ? 18 : 16} className={`shrink-0 ${activeTab === tab.id ? 'text-orange-300' : 'opacity-50'}`} />
                       <span>{tab.label}</span>
                     </button>
                   ))}
                 </nav>
 
-                {/* New Resource Center Section in Sidebar */}
-                <div className="hidden md:block mt-12 pt-8 border-t border-gray-100 dark:border-white/[0.05] w-full">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-4 px-4">Resource Center</p>
+                <div className="hidden md:block mt-12 pt-8 border-t border-white/[0.06] w-full">
+                  <p className="mb-4 px-4 text-[10px] font-black uppercase tracking-widest text-white/35">Resource Center</p>
                   <div className="space-y-1">
                     <button
                       onClick={onOpenAPIDocs}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-xs font-bold text-gray-500 hover:text-orange-500 transition-colors"
+                      className="flex w-full items-center gap-3 px-4 py-2 text-xs font-bold text-white/50 transition-colors hover:text-orange-300"
                     >
                       <BookMarked size={14} />
                       API Setup
                     </button>
                     <button
                       onClick={onOpenUsageGuide}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-xs font-bold text-gray-500 hover:text-orange-500 transition-colors"
+                      className="flex w-full items-center gap-3 px-4 py-2 text-xs font-bold text-white/50 transition-colors hover:text-orange-300"
                     >
                       <Info size={14} />
                       Usage Guide
                     </button>
                     <button
                       onClick={onOpenCompliance}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-xs font-bold text-gray-500 hover:text-orange-500 transition-colors"
+                      className="flex w-full items-center gap-3 px-4 py-2 text-xs font-bold text-white/50 transition-colors hover:text-orange-300"
                     >
                       <Shield size={14} />
                       Compliance
@@ -280,14 +287,14 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                 </div>
               </div>
 
-              <div className="hidden md:flex mt-auto p-8 border-t border-gray-100 dark:border-white/[0.05]">
+              <div className="hidden md:flex mt-auto border-t border-white/[0.06] p-8">
                 <button
                   onClick={onToggleTheme}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] group hover:border-orange-500/30 transition-all"
+                  className="group flex w-full items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 transition-all hover:border-orange-500/30"
                 >
                   <div className="flex items-center gap-3">
-                    {theme === 'light' ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} className="text-purple-400" />}
-                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 capitalize">{theme} Mode</span>
+                    {theme === 'light' ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-orange-300" />}
+                    <span className="text-sm font-bold capitalize text-white/80">{theme} Mode</span>
                   </div>
                   <div className={`w-8 h-4 rounded-full relative transition-colors ${theme === 'dark' ? 'bg-orange-500' : 'bg-gray-200'}`}>
                     <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all ${theme === 'dark' ? 'left-5' : 'left-1'}`} />
@@ -296,20 +303,19 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
               </div>
             </div>
 
-            {/* Content Area - Responsive width */}
-            <div className="flex-1 overflow-y-auto bg-[var(--color-card)] p-5 md:p-8 scroll-smooth text-[var(--color-text-primary)]">
+            <div className="flex-1 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] p-5 text-[var(--color-text-primary)] scroll-smooth md:p-8">
               {/* Personality Tab */}
               {activeTab === 'personality' && (
                 <div className="space-y-8">
                   <header>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Persona & Identity</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Customize Pustakam's personality and appearance.</p>
+                    <h3 className="mb-1 text-lg font-bold text-white">Persona & Identity</h3>
+                    <p className="text-sm text-white/50">Customize Pustakam's personality and appearance.</p>
                   </header>
 
                   <section className="space-y-6">
                     <div className="space-y-4">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Theme Preference</label>
-                      <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                      <label className="text-xs font-bold uppercase tracking-widest text-white/35">Theme Preference</label>
+                      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
                         <button
                           onClick={() => theme === 'dark' && onToggleTheme()}
                           className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${theme === 'light'
@@ -329,12 +335,12 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                           <span className="font-bold text-sm">Dark Mode</span>
                         </button>
                       </div>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 italic">Adjusts the overall interface colors for better visibility.</p>
+                      <p className="text-[10px] italic text-white/35">Adjusts the overall interface colors for better visibility.</p>
                     </div>
 
                     <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-white/[0.05]">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Default Generation Mode</label>
-                      <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                      <label className="text-xs font-bold uppercase tracking-widest text-white/35">Default Generation Mode</label>
+                      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
                         <button
                           onClick={() => setLocalSettings((p: APISettings) => ({ ...p, defaultGenerationMode: 'stellar' }))}
                           className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${localSettings.defaultGenerationMode === 'stellar'
@@ -354,14 +360,14 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                           <span className="font-bold text-sm">Blackhole Mode</span>
                         </button>
                       </div>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 italic">
+                      <p className="text-[10px] italic text-white/35">
                         Sets the default personality for new books. "Stellar" is professional; "Blackhole" is raw and unrestricted.
                       </p>
                     </div>
 
                     <div className="space-y-4 pt-6 border-t border-gray-100 dark:border-white/[0.05]">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Default Language</label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 p-1 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                      <label className="text-xs font-bold uppercase tracking-widest text-white/35">Default Language</label>
+                      <div className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1 md:grid-cols-3">
                         <button
                           onClick={() => setLocalSettings((p: APISettings) => ({ ...p, defaultLanguage: 'en' }))}
                           className={`flex items-center justify-center gap-2.5 py-3 rounded-lg transition-all duration-200 ${localSettings.defaultLanguage === 'en'
@@ -392,7 +398,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                           </>
                         )}
                       </div>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 italic">
+                      <p className="text-[10px] italic text-white/35">
                         {localSettings.defaultGenerationMode === 'blackhole'
                           ? 'Desi "Tapori" modes are only available for Blackhole personality.'
                           : 'Standard English used for Stellar Mode.'}
@@ -405,11 +411,11 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
               {activeTab === 'keys' && (
                 <div className="space-y-8">
                   <header>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Injin Stack Setup</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">This build is locked to four Zhipu GLM models and runs through the secure server proxy.</p>
+                    <h3 className="mb-1 text-lg font-bold text-white">Injin Stack Setup</h3>
+                    <p className="text-sm text-white/50">This build is locked to four Zhipu GLM models and runs through the secure server proxy.</p>
                   </header>
 
-                  <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03] p-5 space-y-5">
+                  <div className="space-y-5 rounded-[28px] border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-xl">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">Server Environment</p>
                       <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -421,7 +427,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                       <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">Approved Models</p>
                       <div className="space-y-2">
                         {ZHIPU_MODELS.map(model => (
-                          <div key={model.model} className="flex items-start justify-between gap-4 rounded-xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-black/20 px-4 py-3">
+                          <div key={model.model} className="flex items-start justify-between gap-4 rounded-xl border border-white/[0.08] bg-black/20 px-4 py-3">
                             <div>
                               <p className="text-sm font-bold text-gray-900 dark:text-white">{model.name}</p>
                               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{model.tagline}</p>
@@ -551,12 +557,12 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
               {activeTab === 'data' && (
                 <div className="space-y-8">
                   <header>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Knowledge Management</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Control your local library and archives.</p>
+                    <h3 className="mb-1 text-lg font-bold text-white">Knowledge Management</h3>
+                    <p className="text-sm text-white/50">Control your local library and archives.</p>
                   </header>
 
                   <section className="space-y-4">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Backup Operations</h4>
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/35">Backup Operations</h4>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={handleExportData}
@@ -576,7 +582,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
 
 
                   <section className="pt-8 space-y-3">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-red-500">Danger Zone</h4>
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-red-400">Danger Zone</h4>
                     <div className="p-4 rounded-xl border border-red-500/10 bg-red-500/[0.02]">
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
                         Resetting the engine will purge all knowledge bases, session history, and GLM stack preferences.
@@ -596,14 +602,14 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
               {/* Platform Tab */}
               {activeTab === 'about' && (
                 <div className="space-y-10">
-                  <div className="flex items-start gap-6">
-                    <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center border border-gray-200 dark:border-white/10 shrink-0">
+                    <div className="flex items-start gap-6">
+                    <div className="w-16 h-16 rounded-xl bg-white/[0.04] flex items-center justify-center border border-white/10 shrink-0">
                       <img src="/white-logo.png" alt="Logo" className="w-10 h-10 drop-shadow-sm dark:invert-0 invert" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black tracking-tight text-gray-900 dark:text-white">{APP_AI_BRANDLINE.toUpperCase()}</h3>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{AI_SUITE_NAME} Edition</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                      <h3 className="text-xl font-black tracking-tight text-white">{APP_AI_BRANDLINE.toUpperCase()}</h3>
+                      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-white/35">{AI_SUITE_NAME} Edition</p>
+                      <p className="text-sm font-medium leading-relaxed text-white/50">
                         A focused GLM-only knowledge forge for modular book generation, streaming chapters, and structured learning assets.
                       </p>
                     </div>
@@ -654,15 +660,15 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
           </div>
 
           {/* Footer */}
-          <div className="px-4 md:px-8 py-5 bg-gray-50/80 dark:bg-black/40 border-t border-gray-100 dark:border-white/[0.05] flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0 backdrop-blur-md shrink-0">
+          <div className="relative z-10 flex shrink-0 flex-col items-center justify-between gap-4 border-t border-white/[0.08] bg-black/35 px-4 py-5 backdrop-blur-xl md:flex-row md:gap-0 md:px-8">
             <div className="flex items-center gap-2 order-2 md:order-1">
               <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/20" />
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">System Synchronized</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">System Synchronized</span>
             </div>
             <div className="flex items-center gap-3 order-1 md:order-2 w-full md:w-auto">
               <button
                 onClick={onClose}
-                className="flex-1 md:flex-none text-xs font-bold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-4 transition-colors"
+                className="flex-1 px-4 text-xs font-bold text-white/45 transition-colors hover:text-white md:flex-none"
               >
                 Cancel
               </button>
