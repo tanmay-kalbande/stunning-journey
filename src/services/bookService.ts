@@ -1,10 +1,11 @@
 // ============================================================================
 // FILE: src/services/bookService.ts
 // FIXES:
-//   1. validateSettings() — auto-correct provider to zhipu in proxy mode
-//      instead of pushing an error that silently blocks generation.
-//   2. generateWithAI() proxy block — added 90-second AbortSignal timeout
-//      so isEnhancing / isGenerating can NEVER get permanently stuck.
+//   1. validateSettings() — auto-correct provider; never error-out in proxy mode
+//   2. generateWithAI() proxy — 90s timeout + full console logging so errors
+//      are ALWAYS visible in DevTools, never swallowed silently
+//   3. getApiKeyForProvider() — zhipu is proxy-only, never needs a local key
+//   4. enhanceBookInput() — wraps errors so isEnhancing always resets
 // ============================================================================
 
 import { BookProject, BookRoadmap, BookModule, RoadmapModule, BookSession } from '../types/book';
@@ -16,6 +17,10 @@ import { desiPromptService } from './desiPromptService';
 import { AI_SUITE_NAME, DEFAULT_ZHIPU_MODEL, ZHIPU_PROVIDER } from '../constants/ai';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// ── Debug helper — always logs so DevTools console is never blank ────────────
+const dbg = (...args: unknown[]) => console.log('[BookService]', ...args);
+const err = (...args: unknown[]) => console.error('[BookService]', ...args);
 
 interface GenerationCheckpoint {
   bookId: string;
@@ -111,6 +116,8 @@ class BookGenerationService {
   // ============================================================================
 
   public async enhanceBookInput(userInput: string, generationMode?: 'stellar' | 'blackhole'): Promise<EnhancedBookData> {
+    dbg('enhanceBookInput called', { userInput: userInput.slice(0, 60), generationMode });
+
     const isDoge = generationMode === 'blackhole';
 
     const standardPrompt = `You are an intelligent assistant designed to help users create well-structured learning books.
@@ -152,20 +159,23 @@ Return ONLY this JSON (no extra text):
 User Input: "${userInput}"`;
 
     const finalPrompt = isDoge ? dogePrompt : standardPrompt;
-    const response = await this.generateWithAI(finalPrompt, undefined, undefined, undefined, 'enhance');
-
-    let cleaned = response.trim()
-      .replace(/```json\s*/gi, '')
-      .replace(/```\s*/g, '');
-
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('AI response was not in a valid JSON format.');
-    }
 
     try {
+      const response = await this.generateWithAI(finalPrompt, undefined, undefined, undefined, 'enhance');
+      dbg('enhanceBookInput raw response length:', response.length);
+
+      let cleaned = response.trim()
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '');
+
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('AI response was not in a valid JSON format.');
+      }
+
       const parsed = JSON.parse(jsonMatch[0]);
       if (!parsed.goal || !parsed.title) throw new Error('AI response is missing required fields.');
+      dbg('enhanceBookInput succeeded:', parsed.title);
       return {
         goal: parsed.goal,
         title: parsed.title,
@@ -174,8 +184,9 @@ User Input: "${userInput}"`;
         preferences: parsed.preferences,
         reasoning: parsed.reasoning,
       };
-    } catch {
-      throw new Error('The AI returned an invalid structure. Please try again.');
+    } catch (e) {
+      err('enhanceBookInput FAILED:', e);
+      throw e; // re-throw so caller can reset isEnhancing
     }
   }
 
@@ -220,7 +231,7 @@ User Input: "${userInput}"`;
     try {
       localStorage.setItem(`checkpoint_${bookId}`, JSON.stringify(checkpoint));
     } catch (error) {
-      console.error('[CHECKPOINT] Failed to save:', error);
+      err('[CHECKPOINT] Failed to save:', error);
     }
   }
 
@@ -235,7 +246,7 @@ User Input: "${userInput}"`;
         return checkpoint;
       }
     } catch (error) {
-      console.error('[CHECKPOINT] Failed to load:', error);
+      err('[CHECKPOINT] Failed to load:', error);
     }
     return null;
   }
@@ -259,26 +270,48 @@ User Input: "${userInput}"`;
   }
 
   // ============================================================================
-  // FIX 1: validateSettings — auto-correct provider in proxy mode
-  // Previously this pushed an error when a stale non-Zhipu provider was saved,
-  // causing generation/enhance to silently fail with a misleading error.
+  // FIX 1: validateSettings
+  // - In proxy mode: auto-correct to zhipu, never push an error
+  // - In direct mode: zhipu is proxy-only so skip the key check for it
   // ============================================================================
   validateSettings(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
     const useProxy = import.meta.env.VITE_USE_PROXY === 'true';
 
+    dbg('validateSettings', {
+      useProxy,
+      provider: this.settings.selectedProvider,
+      model: this.settings.selectedModel,
+      VITE_USE_PROXY: import.meta.env.VITE_USE_PROXY,
+    });
+
     if (!this.settings.selectedProvider) errors.push('No AI provider selected');
     if (!this.settings.selectedModel) errors.push('No model selected');
 
     if (useProxy) {
-      // Auto-correct stale localStorage settings instead of erroring.
+      // Proxy mode: auto-correct provider, never block on missing API key
       if (this.settings.selectedProvider !== ZHIPU_PROVIDER) {
+        dbg('Auto-correcting provider to zhipu for proxy mode');
         this.settings.selectedProvider = ZHIPU_PROVIDER;
         this.settings.selectedModel = DEFAULT_ZHIPU_MODEL;
       }
+      // No API key needed — the Edge Function holds it server-side
     } else {
-      const apiKey = this.getApiKeyForProvider(this.settings.selectedProvider);
-      if (!apiKey) errors.push(`No API key configured for ${this.settings.selectedProvider}`);
+      // Direct mode: zhipu is proxy-only, skip key check for it
+      if (this.settings.selectedProvider === ZHIPU_PROVIDER) {
+        // Zhipu requires the proxy. Surface a clear error.
+        errors.push(
+          'Zhipu GLM models require the proxy (VITE_USE_PROXY=true). ' +
+          'Set VITE_USE_PROXY=true in your Vercel environment variables and redeploy.'
+        );
+      } else {
+        const apiKey = this.getApiKeyForProvider(this.settings.selectedProvider);
+        if (!apiKey) errors.push(`No API key configured for ${this.settings.selectedProvider}`);
+      }
+    }
+
+    if (errors.length > 0) {
+      err('validateSettings FAILED:', errors);
     }
 
     return { isValid: errors.length === 0, errors };
@@ -293,6 +326,8 @@ User Input: "${userInput}"`;
       case 'xai':         return this.settings.xaiApiKey || null;
       case 'openrouter':  return this.settings.openRouterApiKey || null;
       case 'cohere':      return this.settings.cohereApiKey || null;
+      // zhipu is proxy-only — no local key
+      case 'zhipu':       return null;
       default:            return null;
     }
   }
@@ -347,16 +382,16 @@ User Input: "${userInput}"`;
   }
 
   private async waitForUserRetryDecision(
-    bookId: string, moduleTitle: string, error: string, retryCount: number
+    bookId: string, moduleTitle: string, errorMsg: string, retryCount: number
   ): Promise<'retry' | 'switch' | 'skip'> {
     this.updateGenerationStatus(bookId, {
       status: 'waiting_retry',
       totalProgress: 0,
       logMessage: `Error generating: ${moduleTitle}`,
       retryInfo: {
-        moduleTitle, error, retryCount,
+        moduleTitle, error: errorMsg, retryCount,
         maxRetries: this.MAX_MODULE_RETRIES,
-        waitTime: this.calculateRetryDelay(retryCount, this.isRateLimitError({ message: error })),
+        waitTime: this.calculateRetryDelay(retryCount, this.isRateLimitError({ message: errorMsg })),
       },
     });
 
@@ -373,10 +408,7 @@ User Input: "${userInput}"`;
   }
 
   // ============================================================================
-  // CORE AI GENERATION
-  // FIX 2: Added 90-second timeout to proxy path — prevents isEnhancing /
-  //         isGenerating from getting permanently stuck if the Edge Function
-  //         hangs, returns no data, or the network silently drops the request.
+  // FIX 2: generateWithAI — 90s proxy timeout + full console logging
   // ============================================================================
 
   private async generateWithAI(
@@ -387,29 +419,42 @@ User Input: "${userInput}"`;
     taskType?: string
   ): Promise<string> {
     const validation = this.validateSettings();
-    if (!validation.isValid) throw new Error(`Configuration error: ${validation.errors.join(', ')}`);
-    if (!navigator.onLine) throw new Error('No internet connection');
+    if (!validation.isValid) {
+      const errorMsg = `Configuration error: ${validation.errors.join(', ')}`;
+      err('generateWithAI blocked by validation:', errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    if (!navigator.onLine) {
+      err('generateWithAI: no internet connection');
+      throw new Error('No internet connection');
+    }
+
+    const useProxy = import.meta.env.VITE_USE_PROXY === 'true';
+    dbg('generateWithAI', { taskType, useProxy, bookId, provider: this.settings.selectedProvider });
 
     const requestId = bookId || generateId();
     const abortController = new AbortController();
     this.activeRequests.set(requestId, abortController);
 
     // ── Proxy path ──────────────────────────────────────────────────────────
-    const useProxy = import.meta.env.VITE_USE_PROXY === 'true';
     if (useProxy) {
-      // 90-second hard timeout — the Promise.race ensures isEnhancing / isGenerating
-      // can never get permanently stuck even if the Edge Function never responds.
+      dbg('→ taking proxy path');
       let proxyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
       const timeoutPromise = new Promise<never>((_, reject) => {
         proxyTimeoutId = setTimeout(() => {
           abortController.abort();
-          reject(new Error('Request timed out after 90 seconds. Please try again.'));
+          const msg = 'Request timed out after 90 seconds. Please try again.';
+          err('generateWithAI proxy timeout after 90s');
+          reject(new Error(msg));
         }, 90_000);
       });
 
       try {
         const { generateViaProxy } = await import('./proxyService');
         const resolvedTask = (taskType as import('./proxyService').TaskType) || 'module';
+        dbg('Calling generateViaProxy with task:', resolvedTask, 'model:', this.settings.selectedModel);
 
         const result = await Promise.race([
           generateViaProxy(
@@ -423,14 +468,16 @@ User Input: "${userInput}"`;
           timeoutPromise,
         ]);
 
+        dbg('generateViaProxy returned', result.length, 'chars');
         return result;
       } catch (proxyError) {
         const msg = proxyError instanceof Error ? proxyError.message : String(proxyError);
-        // Auth and rate-limit errors must surface directly — do not wrap them
+        err('generateViaProxy ERROR:', msg);
+
         if (msg.startsWith('RATE_LIMIT:') || msg.includes('not authenticated')) {
           throw proxyError;
         }
-        throw new Error(`Proxy unavailable: ${msg}`);
+        throw new Error(`Proxy error: ${msg}`);
       } finally {
         if (proxyTimeoutId !== null) clearTimeout(proxyTimeoutId);
         this.activeRequests.delete(requestId);
@@ -438,6 +485,7 @@ User Input: "${userInput}"`;
     }
 
     // ── Direct provider path ─────────────────────────────────────────────────
+    dbg('→ taking direct provider path:', this.settings.selectedProvider);
     const timeoutId = setTimeout(() => {
       abortController.abort();
       this.activeRequests.delete(requestId);
@@ -468,9 +516,10 @@ User Input: "${userInput}"`;
 
       try {
         response = await fetch(url, { method: 'POST', headers, body, signal });
-      } catch (err) {
-        if ((err as Error).name === 'AbortError') throw err;
-        if (attempt >= this.MAX_MODULE_RETRIES - 1) throw err;
+      } catch (fetchErr) {
+        err('fetch error (attempt', attempt + 1, '):', fetchErr);
+        if ((fetchErr as Error).name === 'AbortError') throw fetchErr;
+        if (attempt >= this.MAX_MODULE_RETRIES - 1) throw fetchErr;
         await sleep(this.calculateRetryDelay(attempt + 1, false));
         continue;
       }
@@ -487,7 +536,9 @@ User Input: "${userInput}"`;
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({})) as Record<string, any>;
-        throw new Error(errData?.error?.message || errData?.message || `HTTP ${response.status}`);
+        const msg = errData?.error?.message || errData?.message || `HTTP ${response.status}`;
+        err('Provider error:', msg);
+        throw new Error(msg);
       }
 
       if (!response.body) throw new Error('Response body is null');
@@ -592,13 +643,11 @@ User Input: "${userInput}"`;
 
         try {
           const data = JSON.parse(trimmed.slice(6));
-
           const oaiText    = data?.choices?.[0]?.delta?.content || '';
           const googleText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
           const cohereText = data?.type === 'content-delta'
             ? (data?.delta?.message?.content?.text || '')
             : '';
-
           const text = oaiText || googleText || cohereText;
           if (text) {
             fullContent += text;
@@ -619,6 +668,7 @@ User Input: "${userInput}"`;
   // ============================================================================
 
   async generateRoadmap(session: BookSession, bookId: string): Promise<BookRoadmap> {
+    dbg('generateRoadmap start', bookId);
     try {
       localStorage.removeItem(`pause_flag_${bookId}`);
       localStorage.removeItem(`checkpoint_${bookId}`);
@@ -634,11 +684,13 @@ User Input: "${userInput}"`;
 
         planService.incrementBooksCreated().catch(() => {});
         this.updateProgress(bookId, { status: 'roadmap_completed', progress: 10, roadmap });
+        dbg('generateRoadmap success', roadmap.totalModules, 'modules');
         return roadmap;
-      } catch (error) {
+      } catch (e) {
+        err('generateRoadmap attempt', attempt + 1, 'failed:', e);
         if (attempt >= 1) {
           this.updateProgress(bookId, { status: 'error', error: 'Roadmap generation failed' });
-          throw error;
+          throw e;
         }
         await sleep(2000);
       }
@@ -779,6 +831,7 @@ Return ONLY valid JSON:
     } catch (error) {
       if (error instanceof Error && error.message === 'GENERATION_PAUSED') throw error;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      err('Module generation error:', errorMessage);
 
       if (attemptNumber < this.MAX_MODULE_RETRIES && this.shouldRetryAutomatically(error)) {
         const delay = this.calculateRetryDelay(attemptNumber, this.isRateLimitError(error));
@@ -849,7 +902,7 @@ ${session.preferences?.includePracticalExercises ? '### Practice Exercises' : ''
   }
 
   // ============================================================================
-  // ORCHESTRATION: Generate All / Retry / Assemble
+  // ORCHESTRATION
   // ============================================================================
 
   async generateAllModulesWithRecovery(book: BookProject, session: BookSession): Promise<void> {
@@ -938,6 +991,7 @@ ${session.preferences?.includePracticalExercises ? '### Practice Exercises' : ''
         }
 
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        err('generateAllModulesWithRecovery loop error:', errorMessage);
         failedIds.add(roadmapModule.id);
         moduleRetryCount[roadmapModule.id] = (moduleRetryCount[roadmapModule.id] || 0) + 1;
         this.saveCheckpoint(book.id, Array.from(completedIds), Array.from(failedIds), i, moduleRetryCount,
@@ -1018,8 +1072,8 @@ ${session.preferences?.includePracticalExercises ? '### Practice Exercises' : ''
         this.generateGlossary(book.modules),
       ]);
 
-      const totalWords  = book.modules.reduce((s, m) => s + m.wordCount, 0);
-      const modelName   = this.settings.selectedModel;
+      const totalWords   = book.modules.reduce((s, m) => s + m.wordCount, 0);
+      const modelName    = this.settings.selectedModel;
       const providerName = this.getProviderDisplayName();
 
       const finalBook = [
@@ -1040,6 +1094,7 @@ ${session.preferences?.includePracticalExercises ? '### Practice Exercises' : ''
 
       this.updateProgress(book.id, { status: 'completed', progress: 100, finalBook, totalWords });
     } catch (error) {
+      err('assembleFinalBook failed:', error);
       this.updateProgress(book.id, { status: 'error', error: 'Book assembly failed' });
       throw error;
     }
