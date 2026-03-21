@@ -1,4 +1,4 @@
-# 📚 Pustakam Agni: GLM Book Forge
+# 📚 Pustakam Injin: GLM Book Forge
 
 <p align="center">
   <img src="https://github.com/tanmay-kalbande/pustakam/raw/main/public/white-logo.png" alt="Pustakam Logo" width="120">
@@ -7,7 +7,7 @@
 <p align="center">
   <strong>Your GLM-powered engine for generating digital books.</strong>
   <br />
-  Pustakam Agni is a focused, local-first application designed to transform your ideas into fully-structured digital books. It now runs on a curated Zhipu GLM stack with secure proxy routing, analytics, and rate limiting support.
+  Pustakam Injin is a focused, local-first application designed to transform your ideas into fully-structured digital books. It now runs on a curated Zhipu GLM stack with secure proxy routing, analytics, and rate limiting support.
 </p>
 
 ---
@@ -21,7 +21,7 @@
 
 -   **🧠 Curated GLM Stack**
     -   Generation is now limited to four approved Zhipu models: `glm-5`, `glm-5-turbo`, `glm-4.7`, and `glm-4.7-flashx`.
-    -   Switch between the Agni Stack presets to balance depth, speed, and long-form teaching quality.
+    -   Switch between the Injin Stack presets to balance depth, speed, and long-form teaching quality.
 
 -   **📖 Immersive Reading & Editing**
     -   Once your book is complete, switch to a beautiful, distraction-free reading mode.

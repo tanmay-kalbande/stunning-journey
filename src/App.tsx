@@ -400,7 +400,7 @@ function App() {
       showAlertDialog({
         type: 'warning',
         title: 'Setup Required',
-        message: 'The Agni Stack proxy is not enabled yet. Turn on `VITE_USE_PROXY=true` and add the required server env vars before generating books.',
+        message: 'The Injin Stack proxy is not enabled yet. Turn on `VITE_USE_PROXY=true` and add the required server env vars before generating books.',
         confirmText: 'Open Setup',
         onConfirm: () => setSettingsOpen(true),
       });

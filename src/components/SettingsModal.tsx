@@ -405,7 +405,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
               {activeTab === 'keys' && (
                 <div className="space-y-8">
                   <header>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Agni Stack Setup</h3>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Injin Stack Setup</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">This build is locked to four Zhipu GLM models and runs through the secure server proxy.</p>
                   </header>
 

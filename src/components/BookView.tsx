@@ -1450,7 +1450,7 @@ const HomeView = ({
             </button>
             {!hasApiKey && (
               <p className="text-center text-xs text-orange-400 mt-2">
-                * Enable the Agni Stack proxy in setup before generating.
+                * Enable the Injin Stack proxy in setup before generating.
               </p>
             )}
           </div>
@@ -1816,7 +1816,7 @@ export function BookView({
       showAlertDialog({
         type: 'warning',
         title: 'Setup Required',
-        message: 'Enable the Agni Stack proxy in setup before generating books.',
+        message: 'Enable the Injin Stack proxy in setup before generating books.',
         confirmText: 'Open Setup',
         onConfirm: onOpenSettings
       });
@@ -1996,7 +1996,7 @@ export function BookView({
         showAlertDialog({
           type: 'warning',
           title: 'Setup Required',
-          message: 'Enable the Agni Stack proxy in setup to use the AI refiner.',
+          message: 'Enable the Injin Stack proxy in setup to use the AI refiner.',
           confirmText: 'Open Setup',
           onConfirm: onOpenSettings
         });
@@ -2058,7 +2058,7 @@ export function BookView({
         showAlertDialog({
           type: 'warning',
           title: 'Setup Required',
-          message: 'Enable the Agni Stack proxy in setup to use the AI refiner.',
+          message: 'Enable the Injin Stack proxy in setup to use the AI refiner.',
           confirmText: 'Open Setup',
           onConfirm: onOpenSettings
         });

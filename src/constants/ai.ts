@@ -1,7 +1,7 @@
 import { ModelProvider } from '../types';
 
-export const AI_SUITE_NAME = 'Agni Stack';
-export const APP_AI_BRANDLINE = 'Pustakam Agni';
+export const AI_SUITE_NAME = 'Injin Stack';
+export const APP_AI_BRANDLINE = 'Pustakam Injin';
 
 export const ZHIPU_PROVIDER: ModelProvider = 'zhipu';
 

@@ -99,7 +99,7 @@ const LandingPage = ({
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-orange-200/90">
             <Zap className="h-3.5 w-3.5" />
-            Pustakam Agni
+            Pustakam Injin
           </span>
         </motion.div>
 
@@ -315,7 +315,7 @@ const LandingPage = ({
       default:
         return (
           <section className="space-y-5 rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-300/80">Pustakam Agni</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-300/80">Pustakam Injin</p>
             <h1 className="text-4xl font-black leading-tight text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
               Professional AI
               <span className="block text-white/60">Book Generation</span>
@@ -363,7 +363,7 @@ const LandingPage = ({
           <div className="group flex cursor-pointer items-center gap-2">
             <img src="/white-logo.png" alt="Pustakam AI Logo" className="h-[33px] w-[33px] opacity-90 transition-opacity group-hover:opacity-100 md:h-8 md:w-8" />
             <span className="text-[16px] font-bold tracking-tight text-white/90 transition-colors group-hover:text-white md:text-xl">
-              Pustakam<span className="ml-0.5 text-white/40">Agni</span>
+              Pustakam<span className="ml-0.5 text-white/40">Injin</span>
             </span>
           </div>
         </div>
@@ -431,7 +431,7 @@ const LandingPage = ({
               <div className="flex items-center gap-3">
                 <img src="/white-logo.png" alt="Logo" className="h-8 w-8" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold uppercase leading-none tracking-tight text-white">Pustakam Agni</span>
+                  <span className="text-sm font-bold uppercase leading-none tracking-tight text-white">Pustakam Injin</span>
                   <span className="mt-1 text-[9px] font-black uppercase leading-none tracking-widest text-white/20">Professional Edition</span>
                 </div>
               </div>
@@ -554,7 +554,7 @@ const LandingPage = ({
           <footer className="z-50 w-full border-t border-white/5 bg-black px-6 py-4 md:absolute md:bottom-0 md:left-0 md:right-0 md:bg-black/80 md:py-5 md:backdrop-blur-xl">
             <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row md:gap-3">
               <div className="flex items-center gap-4 text-[9px] font-medium uppercase tracking-wider text-white/30 md:text-[10px]">
-                <span>&copy; {new Date().getFullYear()} Pustakam Agni</span>
+                <span>&copy; {new Date().getFullYear()} Pustakam Injin</span>
                 <span className="hidden md:inline">&bull;</span>
                 <span>Tanmay Kalbande</span>
               </div>
