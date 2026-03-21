@@ -569,22 +569,26 @@ const EmbeddedProgressPanel = ({
   }
 
   return (
-    <div className={`bg-[var(--color-card)] backdrop-blur-xl border rounded-xl overflow-hidden animate-fade-in-up ${isPaused ? 'border-slate-500/50' : 'border-[var(--color-border)]'
+    <div className={`overflow-hidden rounded-[28px] border backdrop-blur-xl animate-fade-in-up ${isPaused ? 'border-slate-500/50 bg-slate-500/[0.05]' : 'border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]'
       }`}>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-6 md:p-7">
+        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex items-center gap-3">
             {isPaused ? (
-              <div className="w-12 h-12 flex items-center justify-center bg-slate-500/20 rounded-lg border border-slate-500/30">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-500/30 bg-slate-500/20">
                 <Pause className="w-6 h-6 text-slate-400" />
               </div>
             ) : (
-              <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 rounded-lg border border-cyan-500/30">
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-emerald-500/20">
+                <div className="absolute inset-0 rounded-2xl bg-cyan-400/10 blur-md" />
                 <ContextIcon className="w-6 h-6 text-cyan-400 animate-pulse" />
               </div>
             )}
             <div>
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-orange-200/70">
+                In Progress
+              </p>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] md:text-xl">
                 {isPaused ? 'Generation Paused' : 'Generating Chapters...'}
               </h3>
               <p className="text-sm text-[var(--color-text-secondary)]">
@@ -592,26 +596,38 @@ const EmbeddedProgressPanel = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className={`px-3 py-1.5 border rounded-full text-xs font-semibold ${isPaused
               ? 'bg-slate-500/20 border-slate-500/30 text-slate-300'
               : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
               }`}>
               {Math.round(overallProgress)}%
             </div>
-            <div className="text-sm font-mono text-[var(--color-text-secondary)]">
+            <div className="rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-sm font-mono text-[var(--color-text-secondary)]">
               {stats.totalWordsGenerated.toLocaleString()} words
             </div>
           </div>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 rounded-[22px] border border-white/[0.06] bg-black/20 p-4">
+          <div className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
+            <span>Book Build Progress</span>
+            <span>{stats.completedModules}/{stats.totalModules}</span>
+          </div>
           <GradientProgressBar
             progress={overallProgress}
             active={isGenerating}
           />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+              {stats.wordsPerMinute.toFixed(0)} wpm
+            </span>
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+              {formatTime(stats.estimatedTimeRemaining)} left
+            </span>
+          </div>
         </div>
         {isPaused && (
-          <div className="mb-4 p-4 bg-slate-500/10 border border-slate-500/30 rounded-lg">
+          <div className="mb-4 rounded-[22px] border border-slate-500/30 bg-slate-500/10 p-4">
             <div className="flex items-start gap-3">
               <Pause className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -627,11 +643,20 @@ const EmbeddedProgressPanel = ({
         )}
         {isGenerating && generationStatus.currentModule && (
           <>
-            <div className="mt-5 mb-4">
+            <div className="mt-5 mb-4 rounded-[22px] border border-white/[0.06] bg-black/20 px-4 py-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-200/70">Live Drafting</p>
+                  <p className="mt-1 text-sm font-semibold text-[var(--color-text-primary)]">{generationStatus.currentModule.title}</p>
+                </div>
+                <div className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
+                  Attempt {generationStatus.currentModule.attempt}
+                </div>
+              </div>
               <PixelAnimation />
             </div>
             {generationStatus.currentModule.generatedText && (
-              <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg p-4">
+              <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                     <Zap className="w-4 h-4 text-cyan-400" />
@@ -646,7 +671,7 @@ const EmbeddedProgressPanel = ({
                 </div>
                 <div
                   ref={streamBoxRef}
-                  className="text-sm text-[var(--color-text-secondary)] leading-relaxed max-h-32 overflow-y-auto font-mono streaming-text-box"
+                  className="streaming-text-box max-h-40 overflow-y-auto rounded-2xl border border-white/[0.06] bg-black/20 px-4 py-3 font-mono text-sm leading-relaxed text-[var(--color-text-secondary)]"
                 >
                   {generationStatus.currentModule.generatedText}
                   <span className="inline-block w-2 h-4 bg-gray-400 animate-pulse ml-1" />
@@ -655,8 +680,8 @@ const EmbeddedProgressPanel = ({
             )}
           </>
         )}
-        <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
-          <div className="flex items-center justify-between">
+        <div className="mt-6 border-t border-[var(--color-border)] pt-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
               <Clock className="w-4 h-4 text-slate-400" />
               <span>
@@ -666,7 +691,7 @@ const EmbeddedProgressPanel = ({
                 }
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {(isGenerating || isPaused) && onCancel && (
                 <button onClick={onCancel} className="px-4 py-2 border border-[var(--color-border)] hover:bg-[var(--color-card)] rounded-lg text-sm font-medium transition-all hover:border-red-500/50 hover:text-red-400" title="Stop generation and save progress" >
                   <X className="w-4 h-4 inline mr-1.5" /> Cancel
@@ -689,7 +714,7 @@ const EmbeddedProgressPanel = ({
               )}
             </div>
           </div>
-          <div className="mt-3 text-xs text-[var(--color-text-secondary)] flex items-center gap-1.5">
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
             <AlertCircle className="w-3.5 h-3.5" />
             <span>
               {isPaused
@@ -1222,7 +1247,7 @@ const HomeView = ({
         flexShrink: 1
       }}
     />
-    <div className="w-full max-w-2xl mx-auto animate-subtle-fade">
+    <div className="w-full max-w-[980px] mx-auto animate-subtle-fade">
       <div className="text-center mb-8">
         <div className="mb-5 hidden items-center justify-center md:flex">
           <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-orange-200/90">
@@ -1244,46 +1269,78 @@ const HomeView = ({
         </p>
       </div>
 
-      {/* Glass-effect boxy Input Bar */}
-      <div className="grok-input-bar">
+      <div className="rounded-[34px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.22)] md:p-5">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-stretch">
+          <div className="grok-input-bar min-h-[150px] rounded-[28px] border border-white/[0.06] bg-black/25">
+            <textarea
+              value={formData.goal}
+              onChange={(e) => {
+                setFormData((p) => ({ ...p, goal: e.target.value }));
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && formData.goal.trim() && hasApiKey && !localIsGenerating) {
+                  e.preventDefault();
+                  handleCreateRoadmap(formData);
+                }
+              }}
+              placeholder="Describe the book you want to create"
+              className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] text-base resize-none"
+              rows={3}
+              style={{ minHeight: '84px', maxHeight: '200px' }}
+            />
 
-        <textarea
-          value={formData.goal}
-          onChange={(e) => {
-            setFormData((p) => ({ ...p, goal: e.target.value }));
-            // Auto-resize the textarea
-            e.target.style.height = 'auto';
-            e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey && formData.goal.trim() && hasApiKey && !localIsGenerating) {
-              e.preventDefault();
-              handleCreateRoadmap(formData);
-            }
-          }}
-          placeholder="Describe the book you want to create"
-          className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] text-base resize-none"
-          rows={1}
-          style={{ minHeight: '24px', maxHeight: '200px' }}
-        />
+            <button
+              onClick={() => {
+                if (!showAdvanced) setShowAdvanced(true);
+                handleEnhanceWithAI();
+              }}
+              disabled={!formData.goal.trim() || isEnhancing || !hasApiKey}
+              className="grok-input-icon shrink-0 flex items-center gap-1.5 text-sm"
+              title="Refine your prompt with AI and open guided options"
+            >
+              {isEnhancing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">{isEnhancing ? 'Refining...' : 'Enhance'}</span>
+            </button>
+          </div>
 
-        {/* Enhance Idea button */}
-        <button
-          onClick={() => {
-            if (!showAdvanced) setShowAdvanced(true);
-            handleEnhanceWithAI();
-          }}
-          disabled={!formData.goal.trim() || isEnhancing || !hasApiKey}
-          className="grok-input-icon shrink-0 flex items-center gap-1.5 text-sm"
-          title="Refine your prompt with AI and open guided options"
-        >
-          {isEnhancing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4" />
-          )}
-          <span className="hidden sm:inline">{isEnhancing ? 'Refining...' : 'Enhance'}</span>
-        </button>
+          <div className="rounded-[28px] border border-white/[0.06] bg-black/20 p-4 text-left">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-200/70">Generation Flow</p>
+            <div className="mt-4 space-y-3">
+              {[
+                'Turn one topic into a roadmap',
+                'Generate structured chapters',
+                'Assemble a polished final book',
+              ].map((line, index) => (
+                <div key={line} className="flex items-start gap-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-[11px] font-semibold text-white/80">
+                    {index + 1}
+                  </div>
+                  <p className="pt-1 text-sm leading-5 text-[var(--color-text-secondary)]">{line}</p>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => {
+                if (hasApiKey) {
+                  handleCreateRoadmap(formData);
+                } else {
+                  onOpenSettings();
+                }
+              }}
+              disabled={!formData.goal.trim() || localIsGenerating}
+              className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none"
+            >
+              {localIsGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              <span>{localIsGenerating ? 'Designing Roadmap...' : 'Start Generation'}</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Action Chips */}
