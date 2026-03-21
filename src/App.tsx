@@ -1,5 +1,5 @@
 // ============================================================================
-// FILE: src/App.tsx - WITH AUTH
+// FILE: src/App.tsx
 // ============================================================================
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Analytics } from '@vercel/analytics/react';
@@ -31,7 +31,6 @@ import UsageGuidePage from './components/UsageGuidePage';
 import CompliancePage from './components/CompliancePage';
 import { DisclaimerPage } from './components/DisclaimerPage';
 import BlogPage from './components/BlogPage';
-
 import { Toast, ToastType } from './components/Toast';
 import { APP_AI_BRANDLINE, ZHIPU_MODELS } from './constants/ai';
 
@@ -65,7 +64,7 @@ function App() {
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('pustakam-theme') as Theme) || 'dark');
   const [isReadingMode, setIsReadingMode] = useState(false);
 
-  // Auth Modal State
+  // Auth state
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'subscribe'>('signin');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -73,10 +72,10 @@ function App() {
   const [isLoadingScreenVisible, setIsLoadingScreenVisible] = useState(true);
   const [isLoadingScreenExiting, setIsLoadingScreenExiting] = useState(false);
 
-  // Toast State
+  // Toast state
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
-  // Legal Pages State
+  // Legal pages state
   const [showAboutPage, setShowAboutPage] = useState(false);
   const [showTermsPage, setShowTermsPage] = useState(false);
   const [showPrivacyPage, setShowPrivacyPage] = useState(false);
@@ -90,10 +89,9 @@ function App() {
     setToast({ message, type });
   }, []);
 
-  // Get auth state
   const { isAuthenticated, isSupabaseEnabled, isLoading, user, profile, signOut, refreshProfile } = useAuth();
 
-  // Custom Alert Dialog State
+  // Alert dialog state
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [alertDialogProps, setAlertDialogProps] = useState<{
     type: 'info' | 'warning' | 'error' | 'success' | 'confirm';
@@ -104,7 +102,6 @@ function App() {
     onConfirm?: () => void;
   }>({ type: 'info', title: '', message: '' });
 
-  // Helper to show custom alert dialog
   const showAlertDialog = useCallback((props: {
     type: 'info' | 'warning' | 'error' | 'success' | 'confirm';
     title: string;
@@ -119,20 +116,33 @@ function App() {
 
   const handleAlertDialogClose = useCallback(() => {
     setIsAlertDialogOpen(false);
-    // Reset props to avoid stale data in subsequent dialogs
     setAlertDialogProps({ type: 'info', title: '', message: '' });
   }, []);
 
   const { isInstallable, isInstalled, installApp, dismissInstallPrompt } = usePWA();
 
-  const currentBook = useMemo(() => currentBookId ? books.find(b => b.id === currentBookId) : null, [currentBookId, books]);
+  const currentBook = useMemo(
+    () => (currentBookId ? books.find(b => b.id === currentBookId) : null),
+    [currentBookId, books]
+  );
 
   const isGenerating = useMemo(() => {
     if (!currentBook) return false;
     return currentBook.status === 'generating_content' || generationStatus.status === 'generating';
   }, [currentBook?.status, generationStatus.status]);
 
-  const totalWordsGenerated = currentBook?.modules.reduce((sum, m) => sum + (m.status === 'completed' ? m.wordCount : 0), 0) || 0;
+  const totalWordsGenerated = useMemo(
+    () => currentBook?.modules.reduce((sum, m) => sum + (m.status === 'completed' ? m.wordCount : 0), 0) || 0,
+    [currentBook?.modules]
+  );
+
+  // Memoize alternative models to avoid recalculating on every render
+  const alternativeModels = useMemo(
+    () => ZHIPU_MODELS
+      .filter(option => option.model !== settings.selectedModel)
+      .map(({ provider, model, name }) => ({ provider, model, name })),
+    [settings.selectedModel]
+  );
 
   const generationStats = useGenerationStats(
     currentBook?.roadmap?.totalModules || 0,
@@ -150,19 +160,7 @@ function App() {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-
-    // Initial Load Animation - Wait for Data!
-    // We don't auto-dismiss here anymore, we wait for the books useEffect
-    // But we set a safety timeout just in case
-    const safetyTimer = setTimeout(() => {
-      // Only dismiss if the books effect failed to do so
-      // This is accessed via shared state logic (not shown here but handled in the other effect)
-    }, 8000);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(safetyTimer);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -178,85 +176,70 @@ function App() {
     bookService.updateSettings(settings);
     bookService.setProgressCallback(handleBookProgressUpdate);
     bookService.setGenerationStatusCallback((bookId, status) => {
-      setGenerationStatus(prev => ({ ...prev, ...status, totalWordsGenerated: status.totalWordsGenerated || prev.totalWordsGenerated }));
+      setGenerationStatus(prev => ({
+        ...prev,
+        ...status,
+        totalWordsGenerated: status.totalWordsGenerated || prev.totalWordsGenerated,
+      }));
     });
   }, [settings]);
 
-  // Track whether we've completed initial load to prevent overwriting data
   const hasLoadedUserBooksRef = React.useRef(false);
 
   useEffect(() => {
-    // Only save if:
-    // 1. Auth has finished loading (so we have the correct user ID)
-    // 2. We have successfully LOADED user-specific books once (so we're not overwriting with empty array)
     if (!isLoading && hasLoadedUserBooksRef.current) {
-      console.log(`💾 Saving ${books.length} books for user: ${user?.id || 'anonymous'}`);
       storageUtils.saveBooks(books, user?.id);
     }
   }, [books, user?.id, isLoading]);
 
   useEffect(() => { if (!currentBookId) setView('list'); }, [currentBookId]);
 
-  // Reset auth transitioning state when user signs out OR when authentication is established
   useEffect(() => {
-    if (!isLoading) {
-      // If we're not loading anymore, and we're either authenticated or definitely not,
-      // we should stop the transition state
-      setIsAuthTransitioning(false);
-    }
+    if (!isLoading) setIsAuthTransitioning(false);
   }, [isAuthenticated, isLoading]);
 
-  // Load user-specific books when auth finishes loading or user changes
+  // Load user books when auth resolves
   useEffect(() => {
-    // Wait for auth to finish loading before loading books
-    // This ensures we have the correct user ID
     if (isLoading) return;
 
     const loadedBooks = storageUtils.getBooks(user?.id);
-    console.log(`📚 Initial load: ${loadedBooks.length} books for user: ${user?.id || 'anonymous'}`);
-
-    // Set books and mark as loaded in one go
     setBooks(loadedBooks);
     hasLoadedUserBooksRef.current = true;
 
-    // Now that books are loaded (or empty array confirmed), dismiss loading screen
-    // OPTIMIZATION: If user is NOT logged in (Landing Page), dismiss INSTANTLY (delay = 0).
-    // If user IS logged in (Dashboard), keep premium delay (delay = 1500) to show off branding.
     const holdTime = user ? 1500 : 0;
-
     setTimeout(() => {
       setIsLoadingScreenExiting(true);
       setTimeout(() => {
         setIsLoadingScreenVisible(false);
         setIsLoadingScreenExiting(false);
-      }, 700); // Transition duration
+      }, 700);
     }, holdTime);
 
-    // Synchronize books count with database if logged in
     if (user?.id && loadedBooks.length > 0) {
-      const syncCount = async () => {
-        const synced = await planService.syncBooksCount(loadedBooks.length);
-        if (synced) {
-          // If sync happened, refresh the profile to update UI counters
-          await refreshProfile();
-        }
-      };
-      syncCount();
+      planService.syncBooksCount(loadedBooks.length)
+        .then(synced => { if (synced) refreshProfile(); })
+        .catch(() => {});
     }
 
-    // Reset current book selection when user changes
     setCurrentBookId(null);
   }, [user?.id, isLoading, refreshProfile]);
 
-
   useEffect(() => {
     const handleOnline = () => { setIsOnline(true); setShowOfflineMessage(false); };
-    const handleOffline = () => { setIsOnline(false); setShowOfflineMessage(true); setTimeout(() => setShowOfflineMessage(false), 5000); };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setShowOfflineMessage(true);
+      setTimeout(() => setShowOfflineMessage(false), 5000);
+    };
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
+  // Auto-advance status when all modules complete
   useEffect(() => {
     if (!currentBook) return;
 
@@ -265,99 +248,41 @@ function App() {
       currentBook.modules.length === currentBook.roadmap.modules.length &&
       currentBook.modules.every(m => m.status === 'completed');
 
-    if (areAllModulesDone &&
+    if (
+      areAllModulesDone &&
       currentBook.status === 'generating_content' &&
       generationStatus.status !== 'generating' &&
       generationStatus.status !== 'paused' &&
-      generationStatus.status !== 'waiting_retry') {
-
-      console.log('✓ All modules completed - updating to roadmap_completed');
-
-      setBooks(prevBooks =>
-        prevBooks.map(book =>
+      generationStatus.status !== 'waiting_retry'
+    ) {
+      setBooks(prev =>
+        prev.map(book =>
           book.id === currentBook.id
             ? { ...book, status: 'roadmap_completed', progress: 90, updatedAt: new Date() }
             : book
         )
       );
-
       setGenerationStatus({
         status: 'completed',
         totalProgress: 100,
         logMessage: '✅ All modules completed!',
-        totalWordsGenerated: currentBook.modules.reduce((s, m) => s + m.wordCount, 0)
+        totalWordsGenerated: currentBook.modules.reduce((s, m) => s + m.wordCount, 0),
       });
     }
   }, [currentBook, generationStatus.status]);
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
-  };
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
   const hasApiKey = import.meta.env.VITE_USE_PROXY === 'true';
+
   const shouldShowLanding =
     !isLoading &&
     !isAuthTransitioning &&
     ((isSupabaseEnabled && !isAuthenticated) || (!isSupabaseEnabled && showLocalLanding));
 
-  const getAlternativeModels = () => {
-    return ZHIPU_MODELS
-      .filter(option => option.model !== settings.selectedModel)
-      .map(({ provider, model, name }) => ({ provider, model, name }));
-  };
-
-  const showModelSwitchModal = (alternatives: any) => { setModelSwitchOptions(alternatives); setShowModelSwitch(true); };
-
-  const handleModelSwitch = async (provider: ModelProvider, model: string) => {
-    const newSettings = { ...settings, selectedProvider: provider, selectedModel: model };
-    setSettings(newSettings);
-    storageUtils.saveSettings(newSettings);
-    setShowModelSwitch(false);
-    setTimeout(() => {
-      if (currentBook) {
-        const modelName = modelSwitchOptions.find(m => m.provider === provider)?.name;
-        showAlertDialog({
-          type: 'success',
-          title: 'Model Switched',
-          message: `Successfully switched to ${modelName}. Click Resume to continue generation.`,
-          confirmText: 'Got it',
-        });
-        setGenerationStatus(prev => ({ ...prev, status: 'paused', logMessage: '⚙️ Model switched' }));
-      }
-    }, 100);
-  };
-
-  const handleRetryDecision = async (decision: 'retry' | 'switch' | 'skip') => {
-    if (!currentBook) return;
-    if (decision === 'retry') {
-      bookService.setRetryDecision(currentBook.id, 'retry');
-    }
-    else if (decision === 'switch') {
-      bookService.setRetryDecision(currentBook.id, 'switch');
-      const alternatives = getAlternativeModels();
-      if (alternatives.length === 0) {
-        showAlertDialog({
-          type: 'warning',
-          title: 'No Alternatives',
-          message: 'No alternative GLM models are available right now. Open setup to verify the proxy configuration.',
-          confirmText: 'Open Setup',
-          onConfirm: () => setSettingsOpen(true)
-        });
-        return;
-      }
-      showModelSwitchModal(alternatives);
-    }
-    else if (decision === 'skip') {
-      showAlertDialog({
-        type: 'confirm',
-        title: 'Confirm Skip Module',
-        message: '⚠️ Skip this module? It will be marked as failed and will not be included in the final book.',
-        confirmText: 'Yes, Skip',
-        cancelText: 'No, Wait',
-        onConfirm: () => bookService.setRetryDecision(currentBook.id, 'skip'),
-      });
-    }
-  };
+  // ============================================================================
+  // HANDLERS
+  // ============================================================================
 
   const handleSelectBook = (id: string | null) => {
     setCurrentBookId(id);
@@ -365,42 +290,35 @@ function App() {
       setView('detail');
       const book = books.find(b => b.id === id);
       if (book?.status === 'completed') {
-        try { localStorage.removeItem(`pause_flag_${id}`); } catch (e) { console.warn(e); }
-        setGenerationStatus({ status: 'idle', totalProgress: 0, totalWordsGenerated: book.modules.reduce((s, m) => s + m.wordCount, 0) });
+        try { localStorage.removeItem(`pause_flag_${id}`); } catch {}
+        setGenerationStatus({
+          status: 'idle',
+          totalProgress: 0,
+          totalWordsGenerated: book.modules.reduce((s, m) => s + m.wordCount, 0),
+        });
       }
     }
   };
 
   const handleBookProgressUpdate = (bookId: string, updates: Partial<BookProject>) => {
-    setBooks(prev => prev.map(book => book.id === bookId ? { ...book, ...updates, updatedAt: new Date() } : book));
+    setBooks(prev => prev.map(b => b.id === bookId ? { ...b, ...updates, updatedAt: new Date() } : b));
   };
 
   const handleUpdateBookStatus = (bookId: string, newStatus: BookProject['status']) => {
     if (!bookId || !newStatus) return;
-    setBooks(prevBooks =>
-      prevBooks.map(book =>
-        book.id === bookId
-          ? { ...book, status: newStatus, updatedAt: new Date() }
-          : book
-      )
-    );
+    setBooks(prev => prev.map(b => b.id === bookId ? { ...b, status: newStatus, updatedAt: new Date() } : b));
   };
 
   const handleCreateBookRoadmap = async (session: BookSession) => {
     if (!session.goal.trim()) {
-      showAlertDialog({
-        type: 'warning',
-        title: 'Input Required',
-        message: 'Please enter a learning goal.',
-        confirmText: 'Got it',
-      });
+      showAlertDialog({ type: 'warning', title: 'Input Required', message: 'Please enter a learning goal.', confirmText: 'Got it' });
       return;
     }
     if (!hasApiKey) {
       showAlertDialog({
         type: 'warning',
         title: 'Setup Required',
-        message: 'The Injin Stack proxy is not enabled yet. Turn on `VITE_USE_PROXY=true` and add the required server env vars before generating books.',
+        message: 'The Injin Stack proxy is not enabled. Set VITE_USE_PROXY=true and add server env vars.',
         confirmText: 'Open Setup',
         onConfirm: () => setSettingsOpen(true),
       });
@@ -408,13 +326,10 @@ function App() {
     }
 
     const bookId = generateId();
-
     try {
       localStorage.removeItem(`pause_flag_${bookId}`);
       localStorage.removeItem(`checkpoint_${bookId}`);
-    } catch (e) {
-      console.warn('Failed to clear flags:', e);
-    }
+    } catch {}
 
     const newBook: BookProject = {
       id: bookId,
@@ -428,7 +343,7 @@ function App() {
       modules: [],
       category: 'general',
       reasoning: session.reasoning,
-      generationMode: session.generationMode
+      generationMode: session.generationMode,
     };
 
     setBooks(prev => [...prev, newBook]);
@@ -439,75 +354,38 @@ function App() {
       const roadmap = await bookService.generateRoadmap(session, bookId);
       setBooks(prev => prev.map(book =>
         book.id === bookId
-          ? {
-            ...book,
-            roadmap,
-            status: 'roadmap_completed',
-            progress: 10,
-            title: roadmap.modules[0]?.title.includes('Module')
-              ? session.goal
-              : roadmap.modules[0]?.title || session.goal
-          }
+          ? { ...book, roadmap, status: 'roadmap_completed', progress: 10, title: session.goal }
           : book
       ));
+      showToast('Roadmap created! Ready to generate chapters.', 'success');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate roadmap';
-      setBooks(prev => prev.map(book =>
-        book.id === bookId
-          ? { ...book, status: 'error', error: errorMessage }
-          : book
-      ));
-      showAlertDialog({
-        type: 'error',
-        title: 'Roadmap Generation Failed',
-        message: `Failed to generate roadmap: ${errorMessage}. Please check your API key and internet connection.`,
-        confirmText: 'Dismiss',
-      });
+      const msg = error instanceof Error ? error.message : 'Failed to generate roadmap';
+      setBooks(prev => prev.map(b => b.id === bookId ? { ...b, status: 'error', error: msg } : b));
+      showToast(`Roadmap failed: ${msg}`, 'error');
     }
   };
 
   const handleGenerateAllModules = async (book: BookProject, session: BookSession) => {
-    // Check if user is authenticated when Supabase is enabled
-    if (isSupabaseEnabled && !isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
-
+    if (isSupabaseEnabled && !isAuthenticated) { setShowAuthModal(true); return; }
     if (!book.roadmap) {
-      showAlertDialog({
-        type: 'warning',
-        title: 'Missing Roadmap',
-        message: 'No roadmap available to generate modules. Please generate a roadmap first.',
-        confirmText: 'Got it',
-      });
+      showToast('No roadmap found. Generate a roadmap first.', 'warning');
       return;
     }
-
-    if (!session || !session.goal || !session.goal.trim()) {
-      console.error('Invalid session:', session);
-      showAlertDialog({
-        type: 'error',
-        title: 'Invalid Book Session',
-        message: 'The book session data is incomplete or corrupted. Please try creating a new book.',
-        confirmText: 'Dismiss',
-      });
+    if (!session?.goal?.trim()) {
+      showAlertDialog({ type: 'error', title: 'Invalid Session', message: 'Book session data is incomplete. Try creating a new book.', confirmText: 'Dismiss' });
       return;
     }
 
     setGenerationStartTime(new Date());
-    setGenerationStatus({ status: 'generating', totalProgress: 0, logMessage: 'Starting generation...', totalWordsGenerated: 0 });
+    setGenerationStatus({ status: 'generating', totalProgress: 0, logMessage: 'Starting generation…', totalWordsGenerated: 0 });
+
     try {
       await bookService.generateAllModulesWithRecovery(book, session);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Module generation failed';
-      if (!errorMessage.includes('GENERATION_PAUSED')) {
-        setGenerationStatus({ status: 'error', totalProgress: 0, logMessage: `Generation failed: ${errorMessage}` });
-        showAlertDialog({
-          type: 'error',
-          title: 'Module Generation Failed',
-          message: `Generation process encountered an error: ${errorMessage}.`,
-          confirmText: 'Dismiss',
-        });
+      const msg = error instanceof Error ? error.message : 'Generation failed';
+      if (!msg.includes('GENERATION_PAUSED')) {
+        setGenerationStatus({ status: 'error', totalProgress: 0, logMessage: `Generation failed: ${msg}` });
+        showToast(`Generation stopped: ${msg}`, 'error');
       }
     }
   };
@@ -515,61 +393,67 @@ function App() {
   const handlePauseGeneration = (bookId: string) => {
     showAlertDialog({
       type: 'confirm',
-      title: 'Confirm Cancellation',
-      message: 'Are you sure you want to cancel the generation process? Your progress will be saved, and you can resume later.',
+      title: 'Cancel Generation?',
+      message: 'Progress will be saved. You can resume later.',
       confirmText: 'Yes, Cancel',
-      cancelText: 'No, Continue',
+      cancelText: 'Keep Generating',
       onConfirm: () => {
         bookService.cancelActiveRequests(bookId);
         bookService.pauseGeneration(bookId);
         setGenerationStatus(prev => ({ ...prev, status: 'paused', logMessage: '⏸ Generation paused' }));
-      }
+        showToast('Generation paused. Progress saved.', 'info');
+      },
     });
   };
 
   const handleResumeGeneration = async (book: BookProject, session: BookSession) => {
     if (!book.roadmap) {
-      console.error('No roadmap available to resume generation.');
-      // showToast('No roadmap available to resume generation. This book might be corrupted.', 'error');
+      showToast('No roadmap found. Cannot resume.', 'error');
       return;
     }
+
     bookService.resumeGeneration(book.id);
     setGenerationStartTime(new Date());
     setGenerationStatus({
-      status: 'generating', totalProgress: 0, logMessage: 'Resuming generation...',
-      totalWordsGenerated: book.modules.reduce((sum, m) => sum + (m.status === 'completed' ? m.wordCount : 0), 0)
+      status: 'generating',
+      totalProgress: 0,
+      logMessage: 'Resuming generation…',
+      totalWordsGenerated: book.modules.reduce((sum, m) => sum + (m.status === 'completed' ? m.wordCount : 0), 0),
     });
+
     try {
       await bookService.generateAllModulesWithRecovery(book, session);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Resume failed';
-      if (!errorMessage.includes('GENERATION_PAUSED')) {
-        setGenerationStatus({ status: 'error', totalProgress: 0, logMessage: `Resume failed: ${errorMessage}` });
-        console.error(`Failed to resume generation: ${errorMessage}`);
-        // showToast(`Failed to resume generation: ${errorMessage}.`, 'error');
+      const msg = error instanceof Error ? error.message : 'Resume failed';
+      if (!msg.includes('GENERATION_PAUSED')) {
+        setGenerationStatus({ status: 'error', totalProgress: 0, logMessage: `Resume failed: ${msg}` });
+        showToast(`Resume failed: ${msg}`, 'error');
       }
     }
   };
 
   const handleRetryFailedModules = async (book: BookProject, session: BookSession) => {
-    const failedModules = book.modules.filter(m => m.status === 'error');
-    if (failedModules.length === 0) {
-      console.info('No failed modules to retry.');
-      // showToast('No failed modules to retry.', 'info');
+    const failedCount = book.modules.filter(m => m.status === 'error').length;
+    if (failedCount === 0) {
+      showToast('No failed modules to retry.', 'info');
       return;
     }
+
     setGenerationStartTime(new Date());
     setGenerationStatus({
-      status: 'generating', totalProgress: 0, logMessage: `Retrying ${failedModules.length} failed modules...`,
-      totalWordsGenerated: book.modules.reduce((sum, m) => sum + (m.status === 'completed' ? m.wordCount : 0), 0)
+      status: 'generating',
+      totalProgress: 0,
+      logMessage: `Retrying ${failedCount} failed module(s)…`,
+      totalWordsGenerated: book.modules.reduce((sum, m) => sum + (m.status === 'completed' ? m.wordCount : 0), 0),
     });
+
     try {
       await bookService.retryFailedModules(book, session);
+      showToast('Retry complete!', 'success');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Retry failed';
-      setGenerationStatus({ status: 'error', totalProgress: 0, logMessage: `Retry failed: ${errorMessage}` });
-      console.error(`Failed to retry modules: ${errorMessage}`);
-      // showToast(`Failed to retry modules: ${errorMessage}.`, 'error');
+      const msg = error instanceof Error ? error.message : 'Retry failed';
+      setGenerationStatus({ status: 'error', totalProgress: 0, logMessage: `Retry failed: ${msg}` });
+      showToast(`Retry failed: ${msg}`, 'error');
     }
   };
 
@@ -577,110 +461,105 @@ function App() {
     try {
       await bookService.assembleFinalBook(book, session);
       setGenerationStatus({ status: 'completed', totalProgress: 100, logMessage: '✅ Book completed!' });
-      console.info('Book Successfully Assembled!');
-      // showToast('Book Successfully Assembled!', 'success');
+      showToast('Book assembled! Ready to read.', 'success');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Assembly failed';
-      console.error(`Failed to assemble the book: ${errorMessage}`);
-      // showToast(`Failed to assemble the book: ${errorMessage}.`, 'error');
-      setBooks(prev => prev.map(b => b.id === book.id ? { ...b, status: 'error', error: errorMessage } : b));
+      const msg = error instanceof Error ? error.message : 'Assembly failed';
+      showToast(`Assembly failed: ${msg}`, 'error');
+      setBooks(prev => prev.map(b => b.id === book.id ? { ...b, status: 'error', error: msg } : b));
     }
   };
 
   const handleDeleteBook = (id: string) => {
     showAlertDialog({
       type: 'confirm',
-      title: 'Confirm Deletion',
-      message: 'Delete this book permanently? This cannot be undone.',
+      title: 'Delete Book?',
+      message: 'This cannot be undone.',
       confirmText: 'Delete',
       cancelText: 'Cancel',
       onConfirm: () => {
         setBooks(prev => prev.filter(b => b.id !== id));
-        if (currentBookId === id) {
-          setCurrentBookId(null);
-          setView('list');
-        }
+        if (currentBookId === id) { setCurrentBookId(null); setView('list'); }
         try {
           localStorage.removeItem(`checkpoint_${id}`);
           localStorage.removeItem(`pause_flag_${id}`);
-        } catch (e) { console.warn('Failed to clear storage:', e); }
-      }
+        } catch {}
+        showToast('Book deleted.', 'info');
+      },
     });
   };
 
   const handleSaveSettings = (newSettings: APISettings) => {
-    try {
-      setSettings(newSettings);
-      storageUtils.saveSettings(newSettings);
-      setSettingsOpen(false);
-      console.info('Settings Saved');
-      // showToast('Settings Saved', 'success');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save settings.';
-      console.error(`Settings Save Failed: ${errorMessage}`);
-      /*
-      showAlertDialog({
-        type: 'error',
-        title: 'Settings Save Failed',
-        message: `There was an error saving your settings: ${errorMessage}.`,
-        confirmText: 'Dismiss',
-      });
-      */
-    }
+    setSettings(newSettings);
+    storageUtils.saveSettings(newSettings);
+    setSettingsOpen(false);
+    showToast('Settings saved.', 'success');
   };
 
   const handleModelChange = (model: string, provider: ModelProvider) => {
     const newSettings = { ...settings, selectedModel: model, selectedProvider: provider };
     setSettings(newSettings);
     storageUtils.saveSettings(newSettings);
+    showToast(`Switched to ${model}`, 'info');
   };
 
-  const handleInstallApp = async () => { await installApp(); };
+  const handleRetryDecision = async (decision: 'retry' | 'switch' | 'skip') => {
+    if (!currentBook) return;
 
-  const handleUpdateBookContent = (bookId: string, newContent: string) => {
-    setBooks(prev => prev.map(book =>
-      book.id === bookId
-        ? { ...book, finalBook: newContent, updatedAt: new Date() }
-        : book
-    ));
+    if (decision === 'retry') {
+      bookService.setRetryDecision(currentBook.id, 'retry');
+    } else if (decision === 'switch') {
+      bookService.setRetryDecision(currentBook.id, 'switch');
+      if (alternativeModels.length === 0) {
+        showAlertDialog({
+          type: 'warning',
+          title: 'No Alternatives',
+          message: 'No alternative GLM models available. Check the proxy config in settings.',
+          confirmText: 'Open Setup',
+          onConfirm: () => setSettingsOpen(true),
+        });
+        return;
+      }
+      setModelSwitchOptions(alternativeModels);
+      setShowModelSwitch(true);
+    } else {
+      showAlertDialog({
+        type: 'confirm',
+        title: 'Skip This Module?',
+        message: 'It will be marked as failed and excluded from the final book.',
+        confirmText: 'Yes, Skip',
+        cancelText: 'Wait',
+        onConfirm: () => bookService.setRetryDecision(currentBook.id, 'skip'),
+      });
+    }
   };
 
-  // =========================================================================
-  // LANDING PAGE: Show for unauthenticated users when Supabase is enabled
-  // =========================================================================
-  // Show landing page for unauthenticated users
-  // Use isAuthTransitioning to prevent flash during login transition
+  const handleModelSwitch = async (provider: ModelProvider, model: string) => {
+    const newSettings = { ...settings, selectedProvider: provider, selectedModel: model };
+    setSettings(newSettings);
+    storageUtils.saveSettings(newSettings);
+    setShowModelSwitch(false);
+    const name = modelSwitchOptions.find(m => m.model === model)?.name || model;
+    showToast(`Switched to ${name}. Click Resume to continue.`, 'success');
+    if (currentBook) {
+      setGenerationStatus(prev => ({ ...prev, status: 'paused', logMessage: '⚙️ Model switched' }));
+    }
+  };
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
   if (shouldShowLanding) {
     return (
       <>
         <LandingPage
-          onLogin={() => {
-            if (isSupabaseEnabled) {
-              setAuthMode('signin');
-              setShowAuthModal(true);
-              return;
-            }
-            setShowLocalLanding(false);
-            setView('list');
-          }}
+          onLogin={() => { setAuthMode('signin'); setShowAuthModal(true); }}
           onGetStarted={() => {
-            if (isSupabaseEnabled) {
-              setAuthMode('signup');
-              setShowAuthModal(true);
-              return;
-            }
+            if (isSupabaseEnabled) { setAuthMode('signup'); setShowAuthModal(true); return; }
             setShowLocalLanding(false);
             setView('list');
           }}
-          onSubscribe={() => {
-            if (isSupabaseEnabled) {
-              setAuthMode('subscribe');
-              setShowAuthModal(true);
-              return;
-            }
-            setShowLocalLanding(false);
-            setView('list');
-          }}
+          onSubscribe={() => { setAuthMode('subscribe'); setShowAuthModal(true); }}
           onShowAbout={() => setShowAboutPage(true)}
           onShowTerms={() => setShowTermsPage(true)}
           onShowPrivacy={() => setShowPrivacyPage(true)}
@@ -693,12 +572,9 @@ function App() {
           onClose={() => setShowAuthModal(false)}
           initialMode={authMode}
           onSuccess={() => {
-            // Set transitioning state BEFORE closing modal to prevent flash
             setIsAuthTransitioning(true);
             setIsLoadingScreenVisible(true);
             setShowAuthModal(false);
-
-            // Transition to main app
             setTimeout(() => {
               setIsLoadingScreenExiting(true);
               setTimeout(() => {
@@ -724,11 +600,7 @@ function App() {
 
   return (
     <div className="app-container">
-      {theme === 'dark' ? (
-        <NebulaBackground opacity={0.6} />
-      ) : (
-        <div className="sun-background" />
-      )}
+      {theme === 'dark' ? <NebulaBackground opacity={0.6} /> : <div className="sun-background" />}
 
       <TopHeader
         settings={settings}
@@ -747,9 +619,11 @@ function App() {
         userProfile={profile}
         onSignOut={signOut}
         showModelSelector={!showListInMain && !currentBookId && !isReadingMode}
-        centerContent={showListInMain && !currentBookId ? (
-          <h1 className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">My Books</h1>
-        ) : null}
+        centerContent={
+          showListInMain && !currentBookId
+            ? <h1 className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">My Books</h1>
+            : null
+        }
       />
 
       <main id="main-scroll-area" className="main-content">
@@ -775,7 +649,9 @@ function App() {
           hasApiKey={hasApiKey}
           view={view}
           setView={setView}
-          onUpdateBookContent={handleUpdateBookContent}
+          onUpdateBookContent={(bookId, content) =>
+            setBooks(prev => prev.map(b => b.id === bookId ? { ...b, finalBook: content, updatedAt: new Date() } : b))
+          }
           showListInMain={showListInMain}
           setShowListInMain={setShowListInMain}
           isMobile={isMobile}
@@ -785,7 +661,7 @@ function App() {
           onResumeGeneration={handleResumeGeneration}
           isGenerating={isGenerating}
           onRetryDecision={handleRetryDecision}
-          availableModels={getAlternativeModels()}
+          availableModels={alternativeModels}
           theme={theme}
           onOpenSettings={() => setSettingsOpen(true)}
           showAlertDialog={showAlertDialog}
@@ -808,20 +684,21 @@ function App() {
         showAlertDialog={showAlertDialog}
       />
 
+      {/* Model switch modal */}
       {showModelSwitch && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="bg-[var(--color-sidebar)] border border-[var(--color-border)] rounded-2xl shadow-2xl w-full max-w-md p-6 animate-fade-in-up">
-            <h3 className="text-xl font-bold mb-4">Switch AI Model</h3>
+            <h3 className="text-xl font-bold mb-2">Switch AI Model</h3>
             <p className="text-sm text-gray-400 mb-6">Select an alternative model to continue generation:</p>
             <div className="space-y-3 mb-6">
-              {modelSwitchOptions.map((option) => (
+              {modelSwitchOptions.map(opt => (
                 <button
-                  key={`${option.provider}-${option.model}`}
-                  onClick={() => handleModelSwitch(option.provider, option.model)}
+                  key={`${opt.provider}-${opt.model}`}
+                  onClick={() => handleModelSwitch(opt.provider as ModelProvider, opt.model)}
                   className="w-full p-4 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg hover:border-blue-500 transition-all text-left"
                 >
-                  <div className="font-semibold text-[var(--color-text-primary)]">{option.name}</div>
-                  <div className="text-sm text-gray-400 mt-1">{option.provider} • {option.model}</div>
+                  <div className="font-semibold text-[var(--color-text-primary)]">{opt.name}</div>
+                  <div className="text-sm text-gray-400 mt-1">{opt.provider} • {opt.model}</div>
                 </button>
               ))}
             </div>
@@ -831,44 +708,21 @@ function App() {
       )}
 
       {isInstallable && !isInstalled && (
-        <InstallPrompt onInstall={handleInstallApp} onDismiss={dismissInstallPrompt} />
+        <InstallPrompt onInstall={installApp} onDismiss={dismissInstallPrompt} />
       )}
 
-      <CustomAlertDialog
-        isOpen={isAlertDialogOpen}
-        onClose={handleAlertDialogClose}
-        {...alertDialogProps}
-      />
+      <CustomAlertDialog isOpen={isAlertDialogOpen} onClose={handleAlertDialogClose} {...alertDialogProps} />
 
-      <Analytics />
-
-      {/* Auth Modals */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onSuccess={() => {
-          setIsAuthTransitioning(true);
-          setShowAuthModal(false);
-          setShowWelcomeModal(true); // Show welcome after login/signup
-        }}
+        onSuccess={() => { setIsAuthTransitioning(true); setShowAuthModal(false); setShowWelcomeModal(true); }}
       />
 
-      <WelcomeModal
-        isOpen={showWelcomeModal}
-        onClose={() => setShowWelcomeModal(false)}
-      />
+      <WelcomeModal isOpen={showWelcomeModal} onClose={() => setShowWelcomeModal(false)} />
 
-      <Analytics />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
-      {/* Full-screen Documentation Overlays */}
       {showAboutPage && <AboutPage onClose={() => setShowAboutPage(false)} />}
       {showTermsPage && <TermsPage onClose={() => setShowTermsPage(false)} />}
       {showPrivacyPage && <PrivacyPage onClose={() => setShowPrivacyPage(false)} />}
@@ -881,14 +735,15 @@ function App() {
         <LoadingScreen
           theme={theme}
           isExiting={isLoadingScreenExiting}
-          message={isAuthTransitioning ? 'Entering your workspace...' : `Initializing ${APP_AI_BRANDLINE}...`}
+          message={isAuthTransitioning ? 'Entering your workspace…' : `Initializing ${APP_AI_BRANDLINE}…`}
         />
       )}
+
+      <Analytics />
     </div>
   );
 }
 
-// Wrap App with AuthProvider
 function AppWithProviders() {
   return (
     <AuthProvider>
