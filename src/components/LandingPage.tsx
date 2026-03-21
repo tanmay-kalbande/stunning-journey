@@ -110,8 +110,8 @@ const LandingPage = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.06, ease: 'easeOut' }}
         >
-          Professional AI
-          <span className="block text-white/55">Book Generation</span>
+          Build Better
+          <span className="block text-white/55">Learning Books</span>
         </motion.h1>
 
         <motion.p
@@ -120,15 +120,15 @@ const LandingPage = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
         >
-          Generate structured learning books with a focused GLM stack, secure Vercel proxy routing, and a clean workflow built for serious learners.
+          Turn one topic into a clean, structured book.
         </motion.p>
       </div>
 
       <div className="mb-10 grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
         {[
-          { title: 'Focused Model Stack', desc: 'Only four approved GLM models, tuned for clarity and consistency.' },
-          { title: 'Structured Outputs', desc: 'Roadmap, chapters, summary, and glossary in one guided pipeline.' },
-          { title: 'Secure By Design', desc: 'Zhipu key stays server-side through the edge proxy and Supabase auth.' },
+          { title: 'Focused Models', desc: 'Four approved GLM models only.' },
+          { title: 'Clean Output', desc: 'Roadmap, chapters, summary, glossary.' },
+          { title: 'Secure Setup', desc: 'Server-side proxy with Supabase auth.' },
         ].map((item) => (
           <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-left backdrop-blur-sm">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-200/80">{item.title}</p>
@@ -317,11 +317,11 @@ const LandingPage = ({
           <section className="space-y-5 rounded-3xl border border-white/10 bg-white/[0.04] p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-300/80">Pustakam Injin</p>
             <h1 className="text-4xl font-black leading-tight text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
-              Professional AI
-              <span className="block text-white/60">Book Generation</span>
+              Build Better
+              <span className="block text-white/60">Learning Books</span>
             </h1>
             <p className="text-sm leading-relaxed text-white/70">
-              Generate structured learning books with a clean GLM-only stack and a more professional delivery flow.
+              Turn one topic into a clean, structured book.
             </p>
             <div className="grid grid-cols-2 gap-3 text-center">
               <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
