@@ -1247,7 +1247,7 @@ const HomeView = ({
         flexShrink: 1
       }}
     />
-    <div className="w-full max-w-[980px] mx-auto animate-subtle-fade">
+    <div className="w-full max-w-2xl mx-auto animate-subtle-fade">
       <div className="text-center mb-8">
         <div className="mb-5 hidden items-center justify-center md:flex">
           <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-orange-200/90">
@@ -1269,77 +1269,43 @@ const HomeView = ({
         </p>
       </div>
 
-      <div className="rounded-[34px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.22)] md:p-5">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-stretch">
-          <div className="grok-input-bar min-h-[150px] rounded-[28px] border border-white/[0.06] bg-black/25">
-            <textarea
-              value={formData.goal}
-              onChange={(e) => {
-                setFormData((p) => ({ ...p, goal: e.target.value }));
-                e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && formData.goal.trim() && hasApiKey && !localIsGenerating) {
-                  e.preventDefault();
-                  handleCreateRoadmap(formData);
-                }
-              }}
-              placeholder="Describe the book you want to create"
-              className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] text-base resize-none"
-              rows={3}
-              style={{ minHeight: '84px', maxHeight: '200px' }}
-            />
+      <div className="rounded-[32px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015))] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.22)] md:p-4">
+        <div className="grok-input-bar min-h-[136px] rounded-[26px] border border-white/[0.06] bg-black/25">
+          <textarea
+            value={formData.goal}
+            onChange={(e) => {
+              setFormData((p) => ({ ...p, goal: e.target.value }));
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && formData.goal.trim() && hasApiKey && !localIsGenerating) {
+                e.preventDefault();
+                handleCreateRoadmap(formData);
+              }
+            }}
+            placeholder="Describe the book you want to create"
+            className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] text-base resize-none"
+            rows={3}
+            style={{ minHeight: '72px', maxHeight: '200px' }}
+          />
 
-            <button
-              onClick={() => {
-                if (!showAdvanced) setShowAdvanced(true);
-                handleEnhanceWithAI();
-              }}
-              disabled={!formData.goal.trim() || isEnhancing || !hasApiKey}
-              className="grok-input-icon shrink-0 flex items-center gap-1.5 text-sm"
-              title="Refine your prompt with AI and open guided options"
-            >
-              {isEnhancing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4" />
-              )}
-              <span className="hidden sm:inline">{isEnhancing ? 'Refining...' : 'Enhance'}</span>
-            </button>
-          </div>
-
-          <div className="rounded-[28px] border border-white/[0.06] bg-black/20 p-4 text-left">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-200/70">Generation Flow</p>
-            <div className="mt-4 space-y-3">
-              {[
-                'Turn one topic into a roadmap',
-                'Generate structured chapters',
-                'Assemble a polished final book',
-              ].map((line, index) => (
-                <div key={line} className="flex items-start gap-3">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-[11px] font-semibold text-white/80">
-                    {index + 1}
-                  </div>
-                  <p className="pt-1 text-sm leading-5 text-[var(--color-text-secondary)]">{line}</p>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => {
-                if (hasApiKey) {
-                  handleCreateRoadmap(formData);
-                } else {
-                  onOpenSettings();
-                }
-              }}
-              disabled={!formData.goal.trim() || localIsGenerating}
-              className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none"
-            >
-              {localIsGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-              <span>{localIsGenerating ? 'Designing Roadmap...' : 'Start Generation'}</span>
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              if (!showAdvanced) setShowAdvanced(true);
+              handleEnhanceWithAI();
+            }}
+            disabled={!formData.goal.trim() || isEnhancing || !hasApiKey}
+            className="grok-input-icon shrink-0 flex items-center gap-1.5 text-sm"
+            title="Refine your prompt with AI and open guided options"
+          >
+            {isEnhancing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">{isEnhancing ? 'Refining...' : 'Enhance'}</span>
+          </button>
         </div>
       </div>
 
