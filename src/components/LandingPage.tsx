@@ -89,7 +89,7 @@ const LandingPage = ({
   };
 
   const renderHome = () => (
-    <div className="flex min-h-full w-full max-w-[1080px] flex-col items-center justify-center px-6 py-8 text-center md:px-8 md:py-10">
+    <div className="flex min-h-full w-full max-w-[1080px] flex-col items-center justify-center px-6 py-8 text-center md:min-h-0 md:px-8 md:py-8">
       <div className="max-w-[900px]">
         <motion.div
           className="mb-5 hidden items-center justify-center md:flex"
@@ -156,7 +156,7 @@ const LandingPage = ({
   );
 
   const renderProcess = () => (
-    <div className="flex min-h-full w-full max-w-6xl flex-col items-center justify-center px-4 py-6 text-center">
+    <div className="flex min-h-full w-full max-w-6xl flex-col items-center justify-center px-4 py-6 text-center md:min-h-0">
       <div className="mb-6">
         <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.4em] text-orange-300/70">How It Works</span>
         <h2 className="text-3xl font-bold tracking-tight text-white md:text-5xl" style={{ fontFamily: "'Rubik', sans-serif" }}>
@@ -185,7 +185,7 @@ const LandingPage = ({
   );
 
   const renderDemo = () => (
-    <div className="flex min-h-full w-full max-w-5xl flex-col items-center justify-center px-4 py-6">
+    <div className="flex min-h-full w-full max-w-5xl flex-col items-center justify-center px-4 py-6 md:min-h-0">
       <div className="mb-5 text-center">
         <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.4em] text-orange-300/70">Sample Output</span>
         <h2 className="text-3xl font-bold tracking-tight text-white md:text-5xl" style={{ fontFamily: "'Rubik', sans-serif" }}>
@@ -535,7 +535,7 @@ const LandingPage = ({
             </div>
           </div>
 
-          <div className="hidden h-full w-full flex-1 flex-col items-center justify-center md:flex">
+          <div className="hidden h-full min-h-0 w-full flex-1 flex-col items-center justify-center md:flex">
             <AnimatePresence mode="wait" custom={getDirection()}>
               <motion.div
                 key={activeTab}
@@ -544,7 +544,7 @@ const LandingPage = ({
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="flex h-full w-full flex-1 flex-col items-center justify-center px-6 pb-24 pt-20"
+                className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-28 pt-20"
               >
                 {renderDesktopContent()}
               </motion.div>
