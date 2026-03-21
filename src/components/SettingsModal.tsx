@@ -357,11 +357,11 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                             : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}
                         >
                           <Crown size={18} />
-                          <span className="font-bold text-sm">Blackhole Mode</span>
+                          <span className="font-bold text-sm">Street Mode</span>
                         </button>
                       </div>
                       <p className="text-[10px] italic text-white/35">
-                        Sets the default personality for new books. "Stellar" is professional; "Blackhole" is raw and unrestricted.
+                        Sets the default personality for new books. "Stellar" is professional; "Street" is raw and unrestricted.
                       </p>
                     </div>
 
@@ -400,7 +400,7 @@ export function SettingsModal({ isOpen, onClose, settings, onSaveSettings, theme
                       </div>
                       <p className="text-[10px] italic text-white/35">
                         {localSettings.defaultGenerationMode === 'blackhole'
-                          ? 'Desi "Tapori" modes are only available for Blackhole personality.'
+                          ? 'Desi "Tapori" modes are only available for Street personality.'
                           : 'Standard English used for Stellar Mode.'}
                       </p>
                     </div>

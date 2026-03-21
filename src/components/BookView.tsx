@@ -2244,7 +2244,7 @@ export function BookView({
                   }
                   options={[
                     { value: 'stellar', label: 'Stellar Mode (Clean/Shiny)' },
-                    { value: 'blackhole', label: 'Blackhole Mode (Raw Chaos)' },
+                    { value: 'blackhole', label: 'Street Mode (Raw Chaos)' },
                   ]}
                 />
               </div>

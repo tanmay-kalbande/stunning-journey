@@ -189,20 +189,20 @@ const LandingPage = ({
   );
 
   const renderDemo = () => (
-    <div className="flex min-h-full w-full max-w-[920px] flex-col items-center justify-center px-4 py-5 md:min-h-0">
-      <div className="mb-3 text-center">
+    <div className="flex min-h-full w-full max-w-[860px] flex-col items-center justify-center px-4 py-4 md:min-h-0">
+      <div className="mb-2 text-center">
         <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.4em] text-orange-300/70">Sample Output</span>
-        <h2 className="text-3xl font-bold tracking-tight text-white md:text-[48px]" style={{ fontFamily: "'Rubik', sans-serif" }}>
+        <h2 className="text-3xl font-bold tracking-tight text-white md:text-[42px]" style={{ fontFamily: "'Rubik', sans-serif" }}>
           Review A Real Book
         </h2>
       </div>
 
-      <div className="mb-3 flex flex-wrap justify-center gap-2">
+      <div className="mb-2 flex flex-wrap justify-center gap-2">
         {DEMO_BOOKS.map((book, idx) => (
           <button
             key={book.id}
             onClick={() => setActiveDemoIdx(idx)}
-            className={`rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
+            className={`rounded-full border px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               idx === activeDemoIdx ? 'border-white bg-white text-black' : 'border-white/10 bg-white/[0.03] text-white/60 hover:text-white'
             }`}
           >
@@ -211,42 +211,42 @@ const LandingPage = ({
         ))}
       </div>
 
-      <div className="grid w-full max-w-[920px] grid-cols-1 gap-3 md:grid-cols-[1.12fr_0.88fr]">
-        <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Input Prompt</p>
-          <p className="mb-4 border-l-2 border-white/10 pl-4 text-sm italic leading-relaxed text-white/65">
+      <div className="grid w-full max-w-[860px] grid-cols-1 gap-3 md:grid-cols-[1.08fr_0.92fr]">
+        <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
+          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.22em] text-white/30">Input Prompt</p>
+          <p className="mb-3 border-l-2 border-white/10 pl-4 text-sm italic leading-relaxed text-white/65">
             "{activeBook.input}"
           </p>
 
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Generated Title</p>
-          <h3 className="mb-3 text-[32px] font-black leading-none text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
+          <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.22em] text-white/30">Generated Title</p>
+          <h3 className="mb-2 text-[28px] font-black leading-none text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
             {activeBook.title}
           </h3>
 
-          <p className="mb-3 text-sm leading-6 text-white/65">{activeBook.desc}</p>
+          <p className="mb-3 text-sm leading-5 text-white/65">{activeBook.desc}</p>
 
-          <div className="flex items-center gap-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
+          <div className="flex items-center gap-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
             <span>{activeBook.words} words</span>
             <span>{activeBook.chapters} chapters</span>
           </div>
         </div>
 
-        <div className="rounded-[26px] border border-white/10 bg-[#050505]/60 p-4 backdrop-blur-sm">
-          <div className="mb-3 rounded-[24px] border border-white/10 bg-[#0a0a0a] p-3">
-            <div className={`relative flex h-44 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br ${activeBook.accent}`}>
+        <div className="rounded-[24px] border border-white/10 bg-[#050505]/60 p-4 backdrop-blur-sm">
+          <div className="mb-3 rounded-[22px] border border-white/10 bg-[#0a0a0a] p-3">
+            <div className={`relative flex h-36 overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br ${activeBook.accent}`}>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_40%),linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.48))]" />
-              <div className="absolute right-3 top-3 h-10 w-10 rounded-full border border-white/20 bg-white/10 backdrop-blur-md" />
-              <div className="relative z-10 flex h-full w-full flex-col justify-between p-4">
+              <div className="absolute right-3 top-3 h-8 w-8 rounded-full border border-white/20 bg-white/10 backdrop-blur-md" />
+              <div className="relative z-10 flex h-full w-full flex-col justify-between p-3">
                 <div>
                   <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-white/70">{activeBook.eyebrow}</p>
-                  <div className="mt-3 h-px w-12 bg-white/25" />
+                  <div className="mt-2 h-px w-10 bg-white/25" />
                 </div>
                 <div>
-                  <p className="mb-2 text-[10px] uppercase tracking-[0.22em] text-white/60">Pustakam Injin</p>
-                  <h3 className="max-w-[220px] text-[26px] font-black leading-[0.92] text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
+                  <p className="mb-1.5 text-[9px] uppercase tracking-[0.22em] text-white/60">Pustakam Injin</p>
+                  <h3 className="max-w-[180px] text-[22px] font-black leading-[0.92] text-white" style={{ fontFamily: "'Rubik', sans-serif" }}>
                     {activeBook.title}
                   </h3>
-                  <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-white/55">
+                  <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-white/55">
                     {activeBook.chapters} chapters • {activeBook.words} words
                   </p>
                 </div>
