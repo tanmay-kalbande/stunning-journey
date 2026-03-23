@@ -52,7 +52,7 @@ function maxTokensForTask(taskType: TaskType, requestedMaxTokens?: number): numb
 
   switch (taskType) {
     case 'enhance':
-      return 800;
+      return 1200;
     case 'roadmap':
       return 1400;
     case 'glossary':
