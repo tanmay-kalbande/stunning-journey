@@ -17,7 +17,7 @@ const MODEL_PRICING: Record<AllowedModel, { input: number; output: number }> = {
 
 const DAILY_LIMITS = { requests: 100, tokens: 200000, books: 5 };
 const GLOBAL_DAILY_BUDGET_USD = 20;
-const ZHIPU_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+const ZHIPU_URL = 'https://api.z.ai/api/paas/v4/chat/completions';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
