@@ -5,9 +5,6 @@ type TaskType = 'roadmap' | 'module' | 'enhance' | 'assemble' | 'glossary';
 const ALLOWED_MODELS = ['glm-5', 'glm-5-turbo', 'glm-4.7', 'glm-4.7-flashx'] as const;
 type AllowedModel = (typeof ALLOWED_MODELS)[number];
 
-// Default fallback if user hasn't selected a model
-const DEFAULT_MODEL: AllowedModel = 'glm-5-turbo';
-
 const MODEL_PRICING: Record<AllowedModel, { input: number; output: number }> = {
   'glm-5': { input: 0, output: 0 },
   'glm-5-turbo': { input: 0, output: 0 },
@@ -15,8 +12,9 @@ const MODEL_PRICING: Record<AllowedModel, { input: number; output: number }> = {
   'glm-4.7-flashx': { input: 0, output: 0 },
 };
 
-const DAILY_LIMITS = { requests: 100, tokens: 200000, books: 5 };
-const GLOBAL_DAILY_BUDGET_USD = 20;
+// ✅ Bumped limits for testing
+const DAILY_LIMITS = { requests: 500, tokens: 1000000, books: 20 };
+const GLOBAL_DAILY_BUDGET_USD = 100;
 const ZHIPU_URL = 'https://api.z.ai/api/paas/v4/chat/completions';
 
 const CORS_HEADERS = {
@@ -32,16 +30,13 @@ function errorResponse(status: number, message: string): Response {
   });
 }
 
-// ✅ Always uses the model the user selected in the UI
-// Falls back to DEFAULT_MODEL only if nothing valid is passed
-function resolveModel(requestedModel?: string): AllowedModel {
-  if (requestedModel && ALLOWED_MODELS.includes(requestedModel as AllowedModel)) {
-    return requestedModel as AllowedModel;
-  }
-  return DEFAULT_MODEL;
+// ✅ Always use glm-4.7-flashx — fastest, cheapest, good enough for demos
+// UI dropdown is ignored server-side
+function resolveModel(): AllowedModel {
+  return 'glm-4.7-flashx';
 }
 
-// ✅ Max tokens (8192) for every task — no artificial limits
+// ✅ Max tokens for all tasks
 function maxTokensForTask(taskType: TaskType, requestedMaxTokens?: number): number {
   if (requestedMaxTokens) return requestedMaxTokens;
   return 8192;
@@ -244,13 +239,15 @@ async function runHandler(req: Request): Promise<Response> {
   const taskType = body.task_type || 'module';
   const bookId = body.book_id || null;
 
-  // ✅ User-selected model from the UI is always used for everything
-  const resolvedModel = resolveModel(body.model);
+  // ✅ Always flashx — UI model selection is ignored
+  const resolvedModel = resolveModel();
   const pricing = MODEL_PRICING[resolvedModel];
   const isNewBook = taskType === 'roadmap';
+
+  // Skip expensive spend check for light tasks
   const isLightTask = ['enhance', 'glossary'].includes(taskType);
 
-  console.log('[ai/api] model:', resolvedModel, '| task:', taskType, '| tokens: 8192');
+  console.log('[ai/api] model:', resolvedModel, '| task:', taskType);
 
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
@@ -295,7 +292,7 @@ async function runHandler(req: Request): Promise<Response> {
                 wordCount += content.split(/\s+/).filter(Boolean).length;
               }
             } catch {
-              // Ignore partial frames until more bytes arrive
+              // Ignore partial frames
             }
           }
         }
@@ -392,7 +389,7 @@ async function runHandler(req: Request): Promise<Response> {
             return;
           }
 
-          // ✅ Call Zhipu with user-selected model and max tokens
+          // ✅ Call Z.AI with flashx model
           let zhipuRes: Response;
           try {
             zhipuRes = await fetch(ZHIPU_URL, {
@@ -477,7 +474,7 @@ async function runHandler(req: Request): Promise<Response> {
           try {
             controller.close();
           } catch {
-            // Ignore double-close races when client disconnects mid-stream
+            // Ignore double-close races
           }
         }
       })();
