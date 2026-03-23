@@ -380,15 +380,15 @@ User Input: "${userInput}"`;
   private getProxyTimeoutMs(taskType?: string): number {
     switch (taskType) {
       case 'enhance':
-        return 60_000;
+        return 180_000;
       case 'roadmap':
       case 'glossary':
-        return 120_000;
+        return 300_000;
       case 'assemble':
-        return 180_000;
+        return 420_000;
       case 'module':
       default:
-        return 240_000;
+        return 600_000;
     }
   }
 
