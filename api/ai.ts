@@ -5,15 +5,8 @@ type TaskType = 'roadmap' | 'module' | 'enhance' | 'assemble' | 'glossary';
 const ALLOWED_MODELS = ['glm-5', 'glm-5-turbo', 'glm-4.7', 'glm-4.7-flashx'] as const;
 type AllowedModel = (typeof ALLOWED_MODELS)[number];
 
-// ✅ FIX 1: module changed from glm-5 → glm-5-turbo (faster, near-same quality)
-// ✅ FIX 2: assemble changed from glm-4.7 → glm-4.7-flashx (lighter task)
-const TASK_DEFAULT_MODELS: Record<TaskType, AllowedModel> = {
-  roadmap: 'glm-4.7-flashx',
-  module: 'glm-5-turbo',
-  enhance: 'glm-4.7-flashx',
-  assemble: 'glm-4.7-flashx',
-  glossary: 'glm-4.7-flashx',
-};
+// Default fallback if user hasn't selected a model
+const DEFAULT_MODEL: AllowedModel = 'glm-5-turbo';
 
 const MODEL_PRICING: Record<AllowedModel, { input: number; output: number }> = {
   'glm-5': { input: 0, output: 0 },
@@ -39,35 +32,22 @@ function errorResponse(status: number, message: string): Response {
   });
 }
 
-function resolveModel(taskType: TaskType, requestedModel?: string): AllowedModel {
+// ✅ Always uses the model the user selected in the UI
+// Falls back to DEFAULT_MODEL only if nothing valid is passed
+function resolveModel(requestedModel?: string): AllowedModel {
   if (requestedModel && ALLOWED_MODELS.includes(requestedModel as AllowedModel)) {
     return requestedModel as AllowedModel;
   }
-  return TASK_DEFAULT_MODELS[taskType];
+  return DEFAULT_MODEL;
 }
 
-// ✅ FIX 3: Reduced max_tokens for module from 8192 → 4096 (~35% speed boost)
+// ✅ Max tokens (8192) for every task — no artificial limits
 function maxTokensForTask(taskType: TaskType, requestedMaxTokens?: number): number {
   if (requestedMaxTokens) return requestedMaxTokens;
-
-  switch (taskType) {
-    case 'enhance':
-      return 1200;
-    case 'roadmap':
-      return 1400;
-    case 'glossary':
-      return 1800;
-    case 'assemble':
-      return 2500;
-    case 'module':
-    default:
-      return 4096; // was 8192 — still ~3000 words, plenty for a chapter
-  }
+  return 8192;
 }
 
-// ✅ FIX 4: supabaseRequest now has a 5s abort timeout
-// Previously had NO timeout — if Supabase was slow, the whole edge function
-// would hang until Vercel's 60s limit killed it
+// ✅ All Supabase calls have 5s timeout — never hangs the edge function
 async function supabaseRequest(
   url: string,
   method: string,
@@ -91,8 +71,7 @@ async function supabaseRequest(
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
   } catch {
-    // If Supabase times out, return a fake empty success response
-    // so generation still proceeds rather than blocking the user
+    // Supabase timed out — return empty success so generation still proceeds
     return new Response(JSON.stringify([]), { status: 200 });
   } finally {
     clearTimeout(timeoutId);
@@ -212,12 +191,25 @@ async function runHandler(req: Request): Promise<Response> {
   }
 
   const userJwt = authHeader.replace('Bearer ', '');
-  const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: {
-      Authorization: `Bearer ${userJwt}`,
-      apikey: SUPABASE_ANON_KEY,
-    },
-  });
+
+  // Auth check with 8s timeout
+  const authController = new AbortController();
+  const authTimeout = setTimeout(() => authController.abort(), 8000);
+
+  let userRes: Response;
+  try {
+    userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      signal: authController.signal,
+      headers: {
+        Authorization: `Bearer ${userJwt}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+    });
+  } catch {
+    return errorResponse(401, 'Auth check timed out. Please try again.');
+  } finally {
+    clearTimeout(authTimeout);
+  }
 
   if (!userRes.ok) {
     return errorResponse(401, 'Invalid session. Please sign in again.');
@@ -251,14 +243,14 @@ async function runHandler(req: Request): Promise<Response> {
   const today = new Date().toISOString().split('T')[0];
   const taskType = body.task_type || 'module';
   const bookId = body.book_id || null;
-  const resolvedModel = resolveModel(taskType, body.model);
+
+  // ✅ User-selected model from the UI is always used for everything
+  const resolvedModel = resolveModel(body.model);
   const pricing = MODEL_PRICING[resolvedModel];
   const isNewBook = taskType === 'roadmap';
-
-  // ✅ FIX 5: Skip expensive ai_usage table scan for light tasks
-  // The spend check was scanning the entire ai_usage table on every request
-  // and hanging when Supabase was slow — this was the ROOT CAUSE of the 60s timeouts
   const isLightTask = ['enhance', 'glossary'].includes(taskType);
+
+  console.log('[ai/api] model:', resolvedModel, '| task:', taskType, '| tokens: 8192');
 
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
@@ -275,7 +267,9 @@ async function runHandler(req: Request): Promise<Response> {
       };
 
       const sendError = (message: string) => {
-        controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ error: message })}\n\n`));
+        controller.enqueue(
+          encoder.encode(`event: error\ndata: ${JSON.stringify({ error: message })}\n\n`)
+        );
       };
 
       const parseProviderFrames = (text: string) => {
@@ -296,13 +290,12 @@ async function runHandler(req: Request): Promise<Response> {
                 promptTokens = data.usage.prompt_tokens || 0;
                 outputTokens = data.usage.completion_tokens || 0;
               }
-
               const content = data?.choices?.[0]?.delta?.content || '';
               if (content) {
                 wordCount += content.split(/\s+/).filter(Boolean).length;
               }
             } catch {
-              // Ignore partial frames
+              // Ignore partial frames until more bytes arrive
             }
           }
         }
@@ -339,8 +332,7 @@ async function runHandler(req: Request): Promise<Response> {
 
       void (async () => {
         try {
-          // ✅ FIX 6: Parallel Supabase checks with timeout protection
-          // For light tasks (enhance, glossary), skip the spend check entirely
+          // Parallel Supabase checks — skip spend scan for light tasks
           const [spendRes, rateLimitRes] = await Promise.all([
             isLightTask
               ? Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
@@ -358,19 +350,18 @@ async function runHandler(req: Request): Promise<Response> {
             ),
           ]);
 
-          // Only check spend budget for heavy tasks
           if (!isLightTask) {
             const spendData = spendRes.ok
               ? ((await spendRes.json()) as Array<{ cost_usd_cents?: number }>)
               : [];
-            const todaySpend = spendData.reduce((sum, row) => sum + (row.cost_usd_cents || 0), 0) / 100;
+            const todaySpend =
+              spendData.reduce((sum, row) => sum + (row.cost_usd_cents || 0), 0) / 100;
             if (todaySpend >= GLOBAL_DAILY_BUDGET_USD) {
               await failRequest('Platform is at capacity for today. Try again tomorrow.');
               return;
             }
           }
 
-          // Rate limit check always runs (but now has timeout so it can't hang)
           const rateLimitData = rateLimitRes.ok
             ? ((await rateLimitRes.json()) as Array<{
                 requests_made: number;
@@ -378,10 +369,16 @@ async function runHandler(req: Request): Promise<Response> {
                 books_started: number;
               }>)
             : [];
-          const current = rateLimitData[0] || { requests_made: 0, tokens_used: 0, books_started: 0 };
+          const current = rateLimitData[0] || {
+            requests_made: 0,
+            tokens_used: 0,
+            books_started: 0,
+          };
 
           if (current.requests_made >= DAILY_LIMITS.requests) {
-            await failRequest(`Daily limit: ${DAILY_LIMITS.requests} requests/day. Resets at midnight UTC.`);
+            await failRequest(
+              `Daily limit: ${DAILY_LIMITS.requests} requests/day. Resets at midnight UTC.`
+            );
             return;
           }
           if (current.tokens_used >= DAILY_LIMITS.tokens) {
@@ -389,11 +386,13 @@ async function runHandler(req: Request): Promise<Response> {
             return;
           }
           if (isNewBook && current.books_started >= DAILY_LIMITS.books) {
-            await failRequest(`Daily book limit: ${DAILY_LIMITS.books} books/day. Resets at midnight UTC.`);
+            await failRequest(
+              `Daily book limit: ${DAILY_LIMITS.books} books/day. Resets at midnight UTC.`
+            );
             return;
           }
 
-          // Call Zhipu API
+          // ✅ Call Zhipu with user-selected model and max tokens
           let zhipuRes: Response;
           try {
             zhipuRes = await fetch(ZHIPU_URL, {
@@ -412,7 +411,8 @@ async function runHandler(req: Request): Promise<Response> {
               }),
             });
           } catch (networkError) {
-            const message = networkError instanceof Error ? networkError.message : String(networkError);
+            const message =
+              networkError instanceof Error ? networkError.message : String(networkError);
             await failRequest(`Failed to reach AI provider: ${message}`);
             return;
           }
@@ -442,7 +442,8 @@ async function runHandler(req: Request): Promise<Response> {
           parseProviderFrames(decoder.decode());
 
           const totalTokens = promptTokens + outputTokens;
-          const costCents = (promptTokens / 1000) * pricing.input + (outputTokens / 1000) * pricing.output;
+          const costCents =
+            (promptTokens / 1000) * pricing.input + (outputTokens / 1000) * pricing.output;
 
           await Promise.all([
             logUsage(SUPABASE_URL, SERVICE_ROLE_KEY, {
@@ -459,7 +460,14 @@ async function runHandler(req: Request): Promise<Response> {
               errorMessage: null,
               durationMs: Date.now() - startTime,
             }),
-            incrementRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY, userId, today, totalTokens, isNewBook),
+            incrementRateLimit(
+              SUPABASE_URL,
+              SERVICE_ROLE_KEY,
+              userId,
+              today,
+              totalTokens,
+              isNewBook
+            ),
           ]);
         } catch (fatal) {
           const message = fatal instanceof Error ? fatal.message : String(fatal);
