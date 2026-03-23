@@ -618,7 +618,7 @@ function App() {
         user={user}
         userProfile={profile}
         onSignOut={signOut}
-        showModelSelector={!showListInMain && !currentBookId && !isReadingMode}
+        showModelSelector={false}
         centerContent={
           showListInMain && !currentBookId
             ? <h1 className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">My Books</h1>
