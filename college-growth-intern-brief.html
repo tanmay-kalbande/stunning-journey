@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pustakam College Growth Intern Brief</title>
+  <style>
+    @font-face {
+      font-family: "RubikLocal";
+      src: url("../../../pustakam-main/public/fonts/Rubik-Regular.ttf") format("truetype");
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "RubikLocal";
+      src: url("../../../pustakam-main/public/fonts/Rubik-Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "RubikLocal";
+      src: url("../../../pustakam-main/public/fonts/Rubik-Black.ttf") format("truetype");
+      font-weight: 900;
+    }
+
+    @font-face {
+      font-family: "AptosMonoLocal";
+      src: url("../../../pustakam-main/public/fonts/Aptos-Mono.ttf") format("truetype");
+      font-weight: 400;
+    }
+
+    :root {
+      --paper: #ffffff;
+      --canvas: #f4efe8;
+      --ink: #171411;
+      --muted: #67605a;
+      --line: #ddd5cb;
+      --line-strong: #cfc3b6;
+      --brand: #fecd8c;
+      --brand-strong: #e5b87e;
+      --brand-ink: #8c6a3d;
+      --brand-soft: #f9f1e4;
+      --shadow: 0 16px 40px rgba(37, 26, 18, 0.08);
+      --max: 940px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--canvas);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "RubikLocal", "Segoe UI", sans-serif;
+      line-height: 1.65;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0)) 0 0 / 100% 220px no-repeat,
+        var(--canvas);
+    }
+
+    .shell {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 28px 24px 48px;
+    }
+
+    .document {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .page {
+      padding: 42px 46px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .page:last-child {
+      border-bottom: none;
+    }
+
+    .cover-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 56px;
+    }
+
+    .cover-tag {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-ink);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .brand-block {
+      text-align: right;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .brand-block strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.96rem;
+      margin-bottom: 4px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      line-height: 1.12;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      max-width: 12ch;
+    }
+
+    h2 {
+      font-size: 1.52rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    .lead {
+      font-size: 1.08rem;
+      max-width: 64ch;
+      color: #3a332d;
+      margin-bottom: 28px;
+    }
+
+    .rule {
+      width: 88px;
+      height: 3px;
+      background: var(--brand-strong);
+      margin: 28px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: none;
+    }
+
+    th {
+      background: #fbf9f6;
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .meta-table td:first-child {
+      width: 240px;
+      font-weight: 700;
+      color: var(--ink);
+      background: #fbf9f6;
+    }
+
+    .section-kicker {
+      margin-bottom: 8px;
+      color: var(--brand-ink);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .toc {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .toc-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toc-item:last-child {
+      border-bottom: none;
+    }
+
+    .toc-no {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--brand-soft);
+      color: var(--brand-ink);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.84rem;
+    }
+
+    .summary-grid,
+    .two-col,
+    .three-col {
+      display: grid;
+      gap: 16px;
+    }
+
+    .summary-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 20px;
+    }
+
+    .two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .three-col {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .info-box,
+    .plain-card,
+    .note,
+    .step {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 18px;
+    }
+
+    .info-box strong {
+      display: block;
+      font-size: 1.32rem;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .note {
+      background: var(--brand-soft);
+      border-left: 4px solid var(--brand-strong);
+    }
+
+    .steps {
+      display: grid;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .step-no {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--line-strong);
+      background: #fbf8f4;
+      color: var(--brand-ink);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    ul {
+      margin: 10px 0 0 20px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .quote-box {
+      border: 1px solid var(--line);
+      background: #fbf9f6;
+      padding: 18px;
+      font-size: 1rem;
+      color: #332c27;
+    }
+
+    .mono {
+      font-family: "AptosMonoLocal", "Consolas", monospace;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 860px) {
+      .shell { padding-left: 16px; padding-right: 16px; }
+      .page { padding: 28px 22px; }
+      .cover-top,
+      .summary-grid,
+      .two-col,
+      .three-col { grid-template-columns: 1fr; }
+      .brand-block { text-align: left; }
+      .step { grid-template-columns: 1fr; }
+    }
+
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    @media print {
+      html, body { background: #fff; }
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .shell {
+        max-width: none;
+        padding: 0;
+      }
+      .document {
+        border: none;
+        box-shadow: none;
+      }
+      .page {
+        padding: 0;
+        border-bottom: none;
+        page-break-after: always;
+      }
+      .page:last-child {
+        page-break-after: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <article class="document">
+      <section class="page">
+        <div class="cover-top">
+          <div class="cover-tag">Working intern brief</div>
+          <div class="brand-block">
+            <strong>Pustakam Injin</strong>
+            <span>College growth and traction internship</span>
+          </div>
+        </div>
+
+        <h1>Pustakam College Growth Intern Brief</h1>
+        <p class="lead">
+          A practical document for college students who want to work closely with Pustakam on awareness, traction, real-user onboarding, and product feedback collection.
+        </p>
+        <div class="rule"></div>
+
+        <table class="meta-table">
+          <tr><td>Role Type</td><td>College growth, outreach, and user-learning internship</td></tr>
+          <tr><td>Main Objective</td><td>Help Pustakam get real attention, real users, and real product insight</td></tr>
+          <tr><td>Intern Focus</td><td>Publicity, onboarding, community discovery, messaging feedback, and traction support</td></tr>
+          <tr><td>Document Use</td><td>Share this with interested students before onboarding so they understand the work clearly</td></tr>
+          <tr><td>Prepared On</td><td>3 April 2026</td></tr>
+        </table>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">Contents</div>
+        <h2>What this brief covers</h2>
+        <p>This is not just a task list. It explains the role, the product logic behind the role, and the kind of value you want to extract from these interns.</p>
+
+        <div class="toc">
+          <div class="toc-item"><div class="toc-no">01</div><div><h3>Role purpose</h3><p>Why this internship exists and why it matters right now.</p></div></div>
+          <div class="toc-item"><div class="toc-no">02</div><div><h3>What Pustakam is</h3><p>How the product should be understood before anyone tries to promote it.</p></div></div>
+          <div class="toc-item"><div class="toc-no">03</div><div><h3>Main aim of the internship</h3><p>What success really means beyond posting or visibility.</p></div></div>
+          <div class="toc-item"><div class="toc-no">04</div><div><h3>Core work expected</h3><p>The actual tasks and practical areas of responsibility.</p></div></div>
+          <div class="toc-item"><div class="toc-no">05</div><div><h3>What should be learned from interns</h3><p>The product, market, and messaging signals you should extract from their work.</p></div></div>
+          <div class="toc-item"><div class="toc-no">06</div><div><h3>How interns should talk about Pustakam</h3><p>Simple product language, demo flow, and communication framing.</p></div></div>
+          <div class="toc-item"><div class="toc-no">07</div><div><h3>Weekly reporting and evaluation</h3><p>What should be tracked every week.</p></div></div>
+          <div class="toc-item"><div class="toc-no">08</div><div><h3>Final perspective</h3><p>The strategic value of this internship for the platform.</p></div></div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">01. Role purpose</div>
+        <h2>Why this internship exists</h2>
+        <p>
+          This internship exists because Pustakam needs more than visibility. It needs real product movement.
+          That means the product should be seen by the right people, tried by real users, and evaluated through actual user reaction rather than assumptions.
+        </p>
+        <p>
+          The role is useful because college students are close to live communities, peer conversations, practical learning problems, and the kind of word-of-mouth behavior that helps an early product get traction.
+        </p>
+
+        <div class="summary-grid">
+          <div class="info-box"><strong>Awareness</strong><p>Help more people discover that the product exists.</p></div>
+          <div class="info-box"><strong>Usage</strong><p>Get actual people to try Pustakam, not just react to posts.</p></div>
+          <div class="info-box"><strong>Learning</strong><p>Bring back product truth that can improve the platform.</p></div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <h3>Important framing</h3>
+          <p>This should be treated as a traction-plus-product-learning internship, not just a publicity internship.</p>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">02. What Pustakam is</div>
+        <h2>The product they are helping grow</h2>
+        <p>
+          Pustakam is an AI-powered learning-book workflow. A user gives the app a topic or learning goal.
+          The app can refine the topic, create a roadmap, generate chapter-by-chapter content, assemble the final book,
+          and then support reading, editing, analytics, and export.
+        </p>
+
+        <table>
+          <thead>
+            <tr><th>Product layer</th><th>What happens</th><th>Why it matters</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Input</td><td>The user enters a topic or learning goal.</td><td>The entry barrier stays low.</td></tr>
+            <tr><td>Planning</td><td>The app creates a roadmap before writing the full book.</td><td>The output feels structured rather than random.</td></tr>
+            <tr><td>Generation</td><td>Modules are generated one by one with visible progress.</td><td>The process feels controlled and recoverable.</td></tr>
+            <tr><td>Post-generation</td><td>The book can be read, edited, analyzed, and exported.</td><td>The output becomes useful beyond a one-time AI result.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <h3>Strong product description</h3>
+            <p>Pustakam helps a person turn a topic into a structured learning book.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Weak product description</h3>
+            <p>Pustakam is just an AI writer.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">03. Main aim of the internship</div>
+        <h2>What success actually means</h2>
+        <p>The internship is successful when it helps Pustakam move from being seen to being tried, understood, and improved.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-no">1</div>
+            <div>
+              <h3>Find the right people</h3>
+              <p>Not everyone is the right first user. The intern should identify the groups who are most likely to understand and benefit from the product.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-no">2</div>
+            <div>
+              <h3>Get them to try the app</h3>
+              <p>The goal is not just content reach. The goal is actual product usage.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-no">3</div>
+            <div>
+              <h3>Observe real reaction</h3>
+              <p>The intern should notice what people love, where they hesitate, and what they do not understand immediately.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-no">4</div>
+            <div>
+              <h3>Bring back useful truth</h3>
+              <p>The feedback should improve product messaging, onboarding, and product decisions.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">04. Core work expected</div>
+        <h2>What the intern will actually do</h2>
+
+        <div class="three-col">
+          <div class="plain-card">
+            <h3>Product familiarization</h3>
+            <p>Use the app personally, generate books, understand the roadmap flow, and learn how to explain the product simply.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Community discovery</h3>
+            <p>Identify WhatsApp groups, Discord servers, Reddit spaces, student circles, and campus communities where likely users already exist.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Soft outreach</h3>
+            <p>Introduce Pustakam naturally through helpful conversations, demos, and relevant examples rather than spam.</p>
+          </div>
+          <div class="plain-card">
+            <h3>User onboarding</h3>
+            <p>Help a real person try the app with a good first prompt and understand what the product is doing.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Feedback capture</h3>
+            <p>Collect confusion points, objections, reactions, and requests from actual product interactions.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Weekly reporting</h3>
+            <p>Summarize where they shared, who tried the app, what worked, and what should change.</p>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <h3>What the role is not</h3>
+          <p>This role is not about random posting, vanity engagement, or sounding polished without producing useful traction.</p>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">05. What should be learned from interns</div>
+        <h2>The real value you can extract from them</h2>
+        <p>Interns are not only useful because they can spread the product. They are useful because they can reveal market truth quickly.</p>
+
+        <div class="two-col">
+          <div class="plain-card">
+            <h3>Signals to extract</h3>
+            <ul>
+              <li>Which message makes people understand the product fastest</li>
+              <li>Which audience responds most positively</li>
+              <li>Which use cases feel immediately valuable</li>
+              <li>Which example prompts create the strongest reactions</li>
+              <li>What confusion appears during first use</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>Product improvements informed by interns</h3>
+            <ul>
+              <li>Stronger onboarding copy</li>
+              <li>Better first-prompt suggestions</li>
+              <li>Clearer messaging on the landing page</li>
+              <li>Better demo topics for social proof</li>
+              <li>More useful explanations of what the app is and is not</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="quote-box" style="margin-top:20px;">
+          The strongest thing to extract from an early intern is not effort. It is pattern recognition.
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">06. How interns should talk about Pustakam</div>
+        <h2>Simple explanation and demo guidance</h2>
+
+        <div class="plain-card">
+          <h3>Suggested 60-second explanation</h3>
+          <p>
+            "Pustakam helps someone turn a topic into a full learning book. The app first creates a roadmap, then writes the chapters,
+            then packages everything into something the user can actually read, edit, analyze, and export. It is useful for people who want structured learning content quickly."
+          </p>
+        </div>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <h3>Good first demo flow</h3>
+            <ul>
+              <li>Start with a relatable topic</li>
+              <li>Show prompt entry</li>
+              <li>Show roadmap generation</li>
+              <li>Explain chapter generation</li>
+              <li>Jump to a completed book</li>
+              <li>Show reading mode and export</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>Good first demo topics</h3>
+            <ul>
+              <li>Personal finance for beginners</li>
+              <li>Beginner Python</li>
+              <li>Startup basics</li>
+              <li>AI from scratch</li>
+              <li>Productivity systems</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <h3>Communication rule</h3>
+          <p>Lead with workflow value, not hype. The strongest story is not "the AI is powerful." The strongest story is "the app helps people get a structured learning asset much faster."</p>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">07. Weekly reporting and evaluation</div>
+        <h2>What should be tracked each week</h2>
+        <p>The weekly report does not need to be fancy, but it should be clear and useful.</p>
+
+        <table>
+          <thead>
+            <tr><th>Category</th><th>What should be reported</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Outreach</td><td>Communities explored, posts shared, people contacted, or conversations started</td></tr>
+            <tr><td>Usage</td><td>How many people actually tried the app because of the intern</td></tr>
+            <tr><td>Feedback</td><td>Positive reactions, objections, confusion points, and feature requests</td></tr>
+            <tr><td>Messaging</td><td>Which explanations worked, which did not, and what should be improved</td></tr>
+            <tr><td>Recommendations</td><td>What the intern believes should change in product, onboarding, or public positioning</td></tr>
+          </tbody>
+        </table>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <h3>Strong evaluation signals</h3>
+            <ul>
+              <li>Real users tried the product</li>
+              <li>Good feedback quality came back</li>
+              <li>The intern found strong communities</li>
+              <li>The intern surfaced useful product truth</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>Weak evaluation signals</h3>
+            <ul>
+              <li>Only likes or views with no real usage</li>
+              <li>Generic posting with no audience fit</li>
+              <li>Reporting activity without learning</li>
+              <li>Talking about the product without understanding it properly</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">08. Final perspective</div>
+        <h2>My thoughts on the role</h2>
+        <p>
+          This is a smart use of college interns if the role is handled properly.
+          The strongest value will come not from making them behave like generic marketers,
+          but from using them as early traction and insight collectors.
+        </p>
+
+        <div class="two-col">
+          <div class="plain-card">
+            <h3>Why this makes sense</h3>
+            <ul>
+              <li>They are close to real peer networks</li>
+              <li>They can test messaging quickly</li>
+              <li>They can help reveal what actually makes the product click</li>
+              <li>They can bring useful market reactions early</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>Best way to use them</h3>
+            <ul>
+              <li>Give them a clear product explanation</li>
+              <li>Track real-user trials, not only posting effort</li>
+              <li>Ask for product insight every week</li>
+              <li>Use them to improve onboarding and messaging, not just awareness</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="quote-box" style="margin-top:20px;">
+          If handled well, this role gives you three things at once: publicity, user acquisition, and real market learning.
+        </div>
+
+        <p class="mono" style="margin-top:24px;">File: college-growth-intern-brief.html</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

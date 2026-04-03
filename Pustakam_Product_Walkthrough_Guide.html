@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pustakam Product Walkthrough Guide</title>
+  <style>
+    @font-face {
+      font-family: "RubikLocal";
+      src: url("public/fonts/Rubik-Regular.ttf") format("truetype");
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "RubikLocal";
+      src: url("public/fonts/Rubik-Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "RubikLocal";
+      src: url("public/fonts/Rubik-Black.ttf") format("truetype");
+      font-weight: 900;
+    }
+
+    @font-face {
+      font-family: "AptosMonoLocal";
+      src: url("public/fonts/Aptos-Mono.ttf") format("truetype");
+      font-weight: 400;
+    }
+
+    :root {
+      --paper: #ffffff;
+      --canvas: #f4efe8;
+      --ink: #171411;
+      --muted: #67605a;
+      --line: #ddd5cb;
+      --line-strong: #cfc3b6;
+      --brand: #FECD8C;
+      --brand-strong: #E5B87E;
+      --brand-ink: #8c6a3d;
+      --brand-soft: #f9f1e4;
+      --shadow: 0 16px 40px rgba(37, 26, 18, 0.08);
+      --max: 920px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--canvas);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "RubikLocal", "Segoe UI", sans-serif;
+      line-height: 1.6;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0)) 0 0 / 100% 220px no-repeat,
+        var(--canvas);
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(244, 239, 232, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toolbar-inner,
+    .document-shell {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    .toolbar-inner {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .doc-id {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .doc-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--brand-strong);
+      box-shadow: 0 0 0 6px rgba(229, 184, 126, 0.18);
+    }
+
+    .toolbar-note {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .button {
+      appearance: none;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      padding: 11px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .button:hover {
+      background: #faf7f3;
+    }
+
+    .button.primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .document-shell {
+      padding-top: 28px;
+      padding-bottom: 48px;
+    }
+
+    .document {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .page {
+      padding: 42px 46px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .page:last-child {
+      border-bottom: none;
+    }
+
+    .cover-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 56px;
+    }
+
+    .cover-tag {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-ink);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .brand-block {
+      text-align: right;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .brand-block strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.96rem;
+      margin-bottom: 4px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      line-height: 1.12;
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 4.6vw, 3.5rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      max-width: 11ch;
+    }
+
+    h2 {
+      font-size: 1.52rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    .lead {
+      font-size: 1.08rem;
+      max-width: 62ch;
+      color: #3a332d;
+      margin-bottom: 28px;
+    }
+
+    .rule {
+      width: 88px;
+      height: 3px;
+      background: var(--brand-strong);
+      margin: 28px 0;
+    }
+
+    .meta-table,
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+    }
+
+    .meta-table td,
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .meta-table tr:last-child td,
+    table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .meta-table td:last-child,
+    th:last-child,
+    td:last-child {
+      border-right: none;
+    }
+
+    .meta-table td:first-child {
+      width: 220px;
+      font-weight: 700;
+      color: var(--ink);
+      background: #fbf9f6;
+    }
+
+    .section-kicker {
+      margin-bottom: 8px;
+      color: var(--brand-ink);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .toc {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .toc-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toc-item:last-child {
+      border-bottom: none;
+    }
+
+    .toc-no {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--brand-soft);
+      color: var(--brand-ink);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.84rem;
+    }
+
+    .summary-grid,
+    .two-col,
+    .three-col {
+      display: grid;
+      gap: 16px;
+    }
+
+    .summary-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 20px;
+    }
+
+    .two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .three-col {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .info-box,
+    .plain-card,
+    .note,
+    .journey-step {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 18px;
+    }
+
+    .info-box strong {
+      display: block;
+      font-size: 1.36rem;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .note {
+      background: var(--brand-soft);
+      border-left: 4px solid var(--brand-strong);
+    }
+
+    .journey-list {
+      margin-top: 12px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .journey-step {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .journey-no {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--line-strong);
+      background: #fbf8f4;
+      color: var(--brand-ink);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    ul {
+      margin: 10px 0 0 20px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    th {
+      background: #fbf9f6;
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .mini {
+      font-size: 0.9rem;
+    }
+
+    .footer-box {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      padding: 18px 0 0;
+      border-top: 1px solid var(--line);
+      margin-top: 22px;
+    }
+
+    .mono {
+      font-family: "AptosMonoLocal", "Consolas", monospace;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .print-help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 860px) {
+      .toolbar-inner,
+      .document-shell { padding-left: 16px; padding-right: 16px; }
+      .page { padding: 28px 22px; }
+      .cover-top,
+      .summary-grid,
+      .two-col,
+      .three-col { grid-template-columns: 1fr; }
+      .brand-block { text-align: left; }
+      .journey-step { grid-template-columns: 1fr; }
+      .journey-no { margin-top: 0; }
+      .footer-box { flex-direction: column; align-items: flex-start; }
+    }
+
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    @media print {
+      html, body {
+        background: #fff;
+      }
+
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .toolbar,
+      .print-hide {
+        display: none !important;
+      }
+
+      .document-shell {
+        max-width: none;
+        padding: 0;
+      }
+
+      .document {
+        border: none;
+        box-shadow: none;
+      }
+
+      .page {
+        padding: 0;
+        border-bottom: none;
+        page-break-after: always;
+      }
+
+      .page:last-child {
+        page-break-after: auto;
+      }
+
+      .info-box,
+      .plain-card,
+      .note,
+      .journey-step,
+      .document {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <div class="doc-id">
+        <span class="doc-dot" aria-hidden="true"></span>
+        <span>Pustakam Product Walkthrough Guide</span>
+      </div>
+      <div class="toolbar-actions"></div>
+    </div>
+  </div>
+
+  <main class="document-shell">
+    <article class="document">
+      <section class="page" id="top">
+        <div class="cover-top">
+          <div class="cover-tag">Official product guide</div>
+          <div class="brand-block">
+            <strong>Pustakam Injin</strong>
+            <span>AI-powered learning book workflow</span>
+          </div>
+        </div>
+
+        <h1>Pustakam Product Walkthrough Guide</h1>
+        <p class="lead">
+          A clean, non-technical walkthrough of the current Pustakam application: what it does,
+          how the experience flows from first visit to final export, and what makes it useful as a real product rather than a basic AI prompt interface.
+        </p>
+        <div class="rule"></div>
+
+        <table class="meta-table">
+          <tr><td>Document Purpose</td><td>Explain the product clearly for external sharing, onboarding, reviews, and stakeholder understanding.</td></tr>
+          <tr><td>Product Covered</td><td>Pustakam Injin web application in its current codebase form.</td></tr>
+          <tr><td>Audience</td><td>Non-technical readers, internal team members, internship reviewers, creators, educators, and product stakeholders.</td></tr>
+          <tr><td>Document Style</td><td>Minimal, information-heavy, document-first, and suitable for PDF export.</td></tr>
+          <tr><td>Prepared On</td><td>3 April 2026</td></tr>
+        </table>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">Contents</div>
+        <h2>Guide structure</h2>
+        <p>This walkthrough is organized like a practical internal guide rather than a presentation deck.</p>
+
+        <div class="toc">
+          <div class="toc-item"><div class="toc-no">01</div><div><h3>Executive summary</h3><p class="mini">What the product is and what makes it useful.</p></div></div>
+          <div class="toc-item"><div class="toc-no">02</div><div><h3>Product at a glance</h3><p class="mini">Core promise, user value, and primary differentiators.</p></div></div>
+          <div class="toc-item"><div class="toc-no">03</div><div><h3>End-to-end user journey</h3><p class="mini">From landing page to finished book and export.</p></div></div>
+          <div class="toc-item"><div class="toc-no">04</div><div><h3>Detailed walkthrough by screen</h3><p class="mini">What the user sees and does in each major area of the app.</p></div></div>
+          <div class="toc-item"><div class="toc-no">05</div><div><h3>Product systems and reliability</h3><p class="mini">How generation, recovery, storage, and exports work in plain language.</p></div></div>
+          <div class="toc-item"><div class="toc-no">06</div><div><h3>Reading, analytics, and export</h3><p class="mini">How the app becomes useful after generation is complete.</p></div></div>
+          <div class="toc-item"><div class="toc-no">07</div><div><h3>Settings, account, and support surfaces</h3><p class="mini">The supporting layers around the main generation workflow.</p></div></div>
+          <div class="toc-item"><div class="toc-no">08</div><div><h3>Recommended positioning</h3><p class="mini">How to describe the product clearly to others.</p></div></div>
+          <div class="toc-item"><div class="toc-no">09</div><div><h3>Intern briefing</h3><p class="mini">How a new intern should understand, explain, and present the product.</p></div></div>
+          <div class="toc-item"><div class="toc-no">10</div><div><h3>Messaging guardrails</h3><p class="mini">What to emphasize, and what not to over-promise.</p></div></div>
+          <div class="toc-item"><div class="toc-no">11</div><div><h3>FAQ</h3><p class="mini">Short answers for fast reviews and quick understanding.</p></div></div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">01. Executive summary</div>
+        <h2>What Pustakam is</h2>
+        <p>
+          Pustakam is an AI-powered book generation product designed to turn a topic, learning goal, or subject prompt into a structured, chapter-based learning book.
+          It does not stop at draft generation. It also supports roadmap planning, module-by-module writing, reading mode, editing, analytics, study materials, backup, and export.
+        </p>
+
+        <div class="summary-grid">
+          <div class="info-box"><strong>Input</strong><p>A user describes what they want to learn or explain.</p></div>
+          <div class="info-box"><strong>Process</strong><p>The app plans the structure, writes chapters, and assembles the final book.</p></div>
+          <div class="info-box"><strong>Output</strong><p>The user receives a readable, editable, exportable learning asset.</p></div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <h3>Plain-language positioning</h3>
+          <p>
+            The best way to describe Pustakam is: "a personalized AI learning-book workflow." It behaves more like a compact publishing and study tool than a one-box chatbot.
+          </p>
+        </div>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <h3>What makes it stand out</h3>
+            <ul>
+              <li>Creates structure before long-form writing begins.</li>
+              <li>Shows visible progress during chapter generation.</li>
+              <li>Lets users pause, resume, retry, or recover work.</li>
+              <li>Provides a reader experience after creation, not just raw output.</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>Who it helps</h3>
+            <ul>
+              <li>Learners who want a tailored study book.</li>
+              <li>Teachers or trainers who need custom material quickly.</li>
+              <li>Creators building guides, manuals, or educational content.</li>
+              <li>Teams producing onboarding or knowledge documents.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">02. Product at a glance</div>
+        <h2>Core product model</h2>
+        <p>Pustakam can be understood through three connected layers: composition, generation, and consumption.</p>
+
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>What the app does</th><th>User value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Composition</td><td>Takes a user topic and can enhance it into a better brief with title, audience, complexity, and context.</td><td>Removes pressure from the user to write a perfect prompt.</td></tr>
+            <tr><td>Generation</td><td>Builds a roadmap first, then writes chapter modules sequentially with progress tracking.</td><td>Makes the output feel coherent and the workflow feel manageable.</td></tr>
+            <tr><td>Consumption</td><td>Provides reading mode, editing, bookmarks, analytics, study downloads, and file export.</td><td>Turns generated text into a usable product asset.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <div class="section-kicker">Tone options</div>
+            <h3>Two generation personalities</h3>
+            <p><strong>Stellar mode</strong> is the structured, professional teaching voice.</p>
+            <p><strong>Street mode</strong> is more direct, intense, and personality-driven, with support for Hindi and Marathi style options.</p>
+          </div>
+          <div class="plain-card">
+            <div class="section-kicker">Provider options</div>
+            <h3>Two provider-level choices</h3>
+            <p><strong>Z AI</strong> is presented as the depth-focused option for stronger long-form generation.</p>
+            <p><strong>Fast Mistral</strong> is presented as the faster-response option when speed matters more.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">03. End-to-end user journey</div>
+        <h2>From first visit to finished book</h2>
+        <p>The real user journey is straightforward, but the product hides a lot of complexity behind that simplicity.</p>
+
+        <div class="journey-list">
+          <div class="journey-step">
+            <div class="journey-no">1</div>
+            <div>
+              <h3>Landing and discovery</h3>
+              <p>The visitor enters through a branded landing page that explains the product, shows how it works, and offers sample outputs before asking for commitment.</p>
+            </div>
+          </div>
+          <div class="journey-step">
+            <div class="journey-no">2</div>
+            <div>
+              <h3>Topic entry</h3>
+              <p>The user types a topic or learning goal into the main composer. This can be short or detailed.</p>
+            </div>
+          </div>
+          <div class="journey-step">
+            <div class="journey-no">3</div>
+            <div>
+              <h3>Prompt enhancement</h3>
+              <p>The app can refine the topic using AI into a stronger brief with a clearer title, audience definition, and suggested learning structure.</p>
+            </div>
+          </div>
+          <div class="journey-step">
+            <div class="journey-no">4</div>
+            <div>
+              <h3>Roadmap creation</h3>
+              <p>The system generates a chapter roadmap before writing any long-form content. This acts as the structure for the rest of the project.</p>
+            </div>
+          </div>
+          <div class="journey-step">
+            <div class="journey-no">5</div>
+            <div>
+              <h3>Module generation</h3>
+              <p>The app writes modules one at a time while showing progress. The user can pause, resume, retry, or switch provider paths if necessary.</p>
+            </div>
+          </div>
+          <div class="journey-step">
+            <div class="journey-no">6</div>
+            <div>
+              <h3>Assembly and post-generation use</h3>
+              <p>After all modules are completed, the app assembles the final book and makes it available in reading mode, analytics view, and export formats.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">04. Detailed walkthrough by screen</div>
+        <h2>Major app areas</h2>
+
+        <div class="three-col">
+          <div class="plain-card">
+            <h3>Landing page</h3>
+            <p>Acts as the product front door. It includes positioning, a process view, sample books, and access points for account actions or getting started directly.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Home composer</h3>
+            <p>Functions like a clean brief-building surface. The user enters the topic, then expands options if they want more control.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Advanced options</h3>
+            <p>Exposes target audience, complexity, context, generation mode, and language without overloading the default experience.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Bookshelf</h3>
+            <p>Stores generated projects as a searchable library, turning the app into a continuing workspace rather than a one-time interaction.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Project detail view</h3>
+            <p>Shows title, goal, status, module count, word count, read-time estimate, and the full learning roadmap for the selected book.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Reading and export</h3>
+            <p>Once complete, the book can be read, edited, analyzed, bookmarked, downloaded as Markdown, or exported as a professional PDF.</p>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <h3>Important design principle</h3>
+          <p>
+            The product keeps the first step simple, then reveals control gradually. This is one of the strongest parts of the user experience.
+          </p>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">05. Product systems and reliability</div>
+        <h2>How the workflow stays stable</h2>
+        <p>Pustakam is built so that the user does not lose all progress if generation becomes slow or fails halfway.</p>
+
+        <table>
+          <thead>
+            <tr><th>System behavior</th><th>What it means in practice</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Checkpoint saving</td><td>Completed modules are saved during generation, so the user can continue later without starting from zero.</td></tr>
+            <tr><td>Pause and resume</td><td>The user can stop a long run and return to it later, which matters for large books or interrupted sessions.</td></tr>
+            <tr><td>Retry logic</td><td>When the app runs into rate limits or unstable responses, it can attempt recovery instead of simply failing silently.</td></tr>
+            <tr><td>Provider switching</td><td>If one provider path is not working well, the app can offer an alternate route for the user to continue.</td></tr>
+            <tr><td>Local-first storage</td><td>Books, settings, and reading progress remain in local browser storage, so the app retains memory between sessions.</td></tr>
+            <tr><td>Cloud-backed access</td><td>When account features are enabled, authenticated requests can still route through the proper backend path without removing local utility.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <h3>What happens during writing</h3>
+            <ul>
+              <li>The roadmap defines the module sequence.</li>
+              <li>Each module is generated one by one.</li>
+              <li>Progress is shown inside the project view.</li>
+              <li>Completed modules contribute to the final word count and later assembly.</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>What happens after writing</h3>
+            <ul>
+              <li>The book is assembled into a single final output.</li>
+              <li>The app adds introduction, table of contents, summary, and glossary.</li>
+              <li>The user can read, edit, analyze, and export the result.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">06. Reading, analytics, and export</div>
+        <h2>Why the product feels complete after generation</h2>
+        <p>The strongest part of Pustakam is that the experience continues after the book is written.</p>
+
+        <div class="two-col">
+          <div class="plain-card">
+            <h3>Reading mode</h3>
+            <ul>
+              <li>Supports light, sepia, and dark reading themes.</li>
+              <li>Allows font and size adjustments for readability.</li>
+              <li>Supports bookmarks and return-to-position behavior.</li>
+              <li>Includes an editing mode for refining the final text.</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>Analytics and support materials</h3>
+            <ul>
+              <li>Shows total word count and estimated reading time.</li>
+              <li>Provides topic extraction and difficulty classification.</li>
+              <li>Generates study-oriented downloads such as a summary and progress tracker.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <h3>Export capability</h3>
+            <p>
+              The final book can be downloaded as Markdown or exported as a structured PDF.
+              The PDF path is more than basic print output. It is designed to produce a cleaner, more formal document with layout treatment and a disclaimer page.
+            </p>
+          </div>
+          <div class="plain-card">
+            <h3>Backup and restore</h3>
+            <p>
+              The settings area includes export and import for full-library backup, which is valuable for users who want portability or protection against browser resets.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">07. Settings, account, and support surfaces</div>
+        <h2>The surrounding product layers that make the app usable day to day</h2>
+        <p>Beyond generation itself, Pustakam includes a number of supporting surfaces that make it feel like a real product environment instead of a single workflow screen.</p>
+
+        <div class="three-col">
+          <div class="plain-card">
+            <h3>Settings modal</h3>
+            <p>The settings area covers theme preference, default generation mode, default language, backup actions, restore flow, and full local data reset.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Account flow</h3>
+            <p>When authentication is enabled, users can sign in, create an account, and enter profile details such as role and learning interest during signup.</p>
+          </div>
+          <div class="plain-card">
+            <h3>Subscription contact path</h3>
+            <p>The app includes a lightweight subscription-contact route that moves the user toward WhatsApp or email rather than forcing a complicated purchase flow inside the interface.</p>
+          </div>
+        </div>
+
+        <div class="two-col" style="margin-top:20px;">
+          <div class="plain-card">
+            <h3>Backup and data control</h3>
+            <ul>
+              <li>Export the local library and settings as a JSON archive.</li>
+              <li>Restore a prior library or merge imported books into the existing set.</li>
+              <li>Purge all stored data when a user wants a clean reset.</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>PWA and install behavior</h3>
+            <ul>
+              <li>Supports install prompts for a more app-like experience.</li>
+              <li>Tracks dismissals so the install prompt is not shown too aggressively.</li>
+              <li>Supports offline reading once content is already available locally.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="plain-card" style="margin-top:20px;">
+          <h3>Built-in help and trust surfaces</h3>
+          <p>
+            The product includes dedicated pages and modals for About, Terms, Privacy, Compliance, Disclaimer, API documentation, usage guide, and blog content.
+            This matters because it gives the app clearer boundaries, better product education, and stronger trust signals for new users.
+          </p>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">08. Recommended positioning</div>
+        <h2>How to describe the product externally</h2>
+        <p>The product is best positioned as a structured AI learning-book workflow rather than just an AI writer.</p>
+
+        <table>
+          <thead>
+            <tr><th>Good description</th><th>Why it works</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>"Pustakam turns a topic into a structured learning book."</td><td>Simple, direct, and easy for a first-time viewer to understand.</td></tr>
+            <tr><td>"It plans, writes, assembles, and packages personalized knowledge content."</td><td>Communicates that the product covers more than prompt-to-text generation.</td></tr>
+            <tr><td>"It is useful for learners, educators, creators, and internal knowledge teams."</td><td>Expands the value beyond only personal study.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="three-col" style="margin-top:20px;">
+          <div class="plain-card"><h3>Self-learning</h3><p>Best when someone needs a topic explained at their own level and pace.</p></div>
+          <div class="plain-card"><h3>Education support</h3><p>Strong for supplementary reading material, practice-oriented explainers, or custom learning notes.</p></div>
+          <div class="plain-card"><h3>Knowledge operations</h3><p>Useful for onboarding guides, training content, and internal manuals that can then be edited by humans.</p></div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">09. Intern briefing</div>
+        <h2>What a new intern should understand quickly</h2>
+        <p>If this document is being shared with interns, the most important thing is that they understand how to explain the product clearly and consistently.</p>
+
+        <div class="two-col">
+          <div class="plain-card">
+            <h3>What interns should remember</h3>
+            <ul>
+              <li>Pustakam is not just an AI writer. It is a structured learning-book workflow.</li>
+              <li>The strongest product story is the full journey: prompt, roadmap, chapters, reading, analytics, export.</li>
+              <li>The app is useful because it saves time while still giving the user control after generation.</li>
+              <li>The experience is strongest when shown through one complete example rather than abstract explanation.</li>
+            </ul>
+          </div>
+          <div class="plain-card">
+            <h3>What interns should notice in the app</h3>
+            <ul>
+              <li>The landing page positions the product before the user enters the workflow.</li>
+              <li>The composer keeps the first step simple and reveals options only when needed.</li>
+              <li>The product visibly manages long generation runs instead of hiding them.</li>
+              <li>The app has useful post-generation surfaces, which many AI tools do not.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="plain-card" style="margin-top:20px;">
+          <h3>Suggested 60-second product explanation for interns</h3>
+          <p>
+            "Pustakam helps someone turn a topic into a full learning book. The app first creates a roadmap, then writes the chapters,
+            then packages everything into something the user can actually read, edit, analyze, and export. It is especially useful for people who want structured learning content fast, without building the whole thing manually."
+          </p>
+        </div>
+
+        <div class="three-col" style="margin-top:20px;">
+          <div class="plain-card"><h3>Good first demo topic</h3><p>Choose a topic that is practical, clear, and easy to judge, such as personal finance, startup basics, or beginner web development.</p></div>
+          <div class="plain-card"><h3>Good demo path</h3><p>Show prompt entry, roadmap generation, chapter progress, then jump to a completed book to show reading mode and export capability.</p></div>
+          <div class="plain-card"><h3>Good closing line</h3><p>End the walkthrough by showing that the result is not only generated, but also editable, readable, and shareable.</p></div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">10. Messaging guardrails</div>
+        <h2>What to emphasize, and what not to over-promise</h2>
+        <p>This section is especially useful for interns or anyone speaking about the product publicly.</p>
+
+        <table>
+          <thead>
+            <tr><th>Do say</th><th>Do not say</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>"It creates structured learning books quickly."</td><td>"It guarantees perfect accuracy on every topic."</td></tr>
+            <tr><td>"It helps users go from topic to roadmap to final export."</td><td>"It replaces expert review in high-stakes fields."</td></tr>
+            <tr><td>"It is strong for study material, explainers, and custom guides."</td><td>"It can be trusted blindly without checking the output."</td></tr>
+            <tr><td>"It includes editing, analytics, backup, and PDF export."</td><td>"It is only useful because of the AI model."</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note" style="margin-top:20px;">
+          <h3>Best practice for interns</h3>
+          <p>
+            Lead with workflow value, not hype. The strongest story is not "our AI is powerful." The strongest story is "the app gives people a structured, usable learning asset much faster than doing it manually."
+          </p>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="section-kicker">11. FAQ</div>
+        <h2>Short answers for quick reviews</h2>
+
+        <div class="two-col">
+          <div class="plain-card"><h3>Is it only a generator?</h3><p>No. It includes planning, generation management, reading, editing, analytics, backup, and export.</p></div>
+          <div class="plain-card"><h3>Can users recover failed runs?</h3><p>Yes. The app supports checkpoints, pause and resume behavior, retry logic, and alternate provider selection.</p></div>
+          <div class="plain-card"><h3>Can the output be edited?</h3><p>Yes. Final book content can be opened in an editing mode and saved back into the project.</p></div>
+          <div class="plain-card"><h3>Does it work only online?</h3><p>Generation depends on online access, but the app is designed with PWA behavior and offline reading utility after content exists locally.</p></div>
+          <div class="plain-card"><h3>What makes it different from a chatbot?</h3><p>It keeps project structure, writes chapter-by-chapter, stores progress, and packages the result into a more usable document experience.</p></div>
+          <div class="plain-card"><h3>Is it suited for sharing?</h3><p>Yes. The guide, export, and PDF behavior make it suitable for presenting output outside the app.</p></div>
+        </div>
+
+      </section>
+    </article>
+  </main>
+</body>
+</html>
